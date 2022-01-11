@@ -43,6 +43,8 @@ module.exports = function (app) {
             let userExists = await USER.find({ email: request.body.email, password: encrypted_password})
             
             if (!functions.empty(userExists)) {
+
+                userExists = Array.isArray(userExists)? userExists[0] : userExists;
                 
                 // Check if user is blocked
                 if (userExists.is_blocked) {
@@ -63,6 +65,7 @@ module.exports = function (app) {
                 }
 
                 try {
+
                     if (userExists.password === encrypted_password) {
 
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)

@@ -44,6 +44,7 @@ module.exports = function (app) {
                     response.status(400).json({ "status": 400, "message": "Verification code didn't match this user credentials.", "data": payload });
                 
                 } else {
+                    userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
                     let new_password = functions.uniqueId(8, "number")
 
@@ -51,6 +52,8 @@ module.exports = function (app) {
                     {$set: { 
                         password: functions.encrypt(new_password),
                     }});
+
+                    console.log(userExists)
 
                     // Send email
                     let subject = `${functions.ucwords(process.env.APP_NAME)} password reset`;

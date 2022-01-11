@@ -44,6 +44,8 @@ module.exports = function (app) {
                 
                 } else {
 
+                    userExists = Array.isArray(userExists)? userExists[0] : userExists;
+
                     USER.update({"email": request.body.email },
                     {$set: { 
                         verification_code: "",

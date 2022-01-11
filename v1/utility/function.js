@@ -310,10 +310,10 @@ var self = module.exports = {
                 "replyToName": process.env.APP_NAME,
                 "to": to,
                 "isTransactional": true
-            },
+            },s
             json: true
         }
-        type == "html" ? options.from["bodyHtml"] = body : options.from["bodyText"] = body
+        type == "html" ? options.form["bodyHtml"] = body : options.form["bodyText"] = body
         url_request(options, function (err, res, body) {
             if (self.empty(err)) {
                 if (body.success == false) {

@@ -44,6 +44,8 @@ module.exports = function (app) {
                 
                 } else {
 
+                    userExists = Array.isArray(userExists)? userExists[0] : userExists;
+
                     if (!functions.stringToBoolean(userExists.is_verified)) {
 
                         // Send email
