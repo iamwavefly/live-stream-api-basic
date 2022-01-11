@@ -309,11 +309,11 @@ var self = module.exports = {
                 "replyTo": process.env.APP_EMAIL,
                 "replyToName": process.env.APP_NAME,
                 "to": to,
-                "isTransactional": true,
-                "bodyHtml": body
+                "isTransactional": true
             },
             json: true
         }
+        type == "html" ? options.form["bodyHtml"] = body : options.form["bodyText"] = body
         url_request(options, function (err, res, body) {
             if (self.empty(err)) {
                 if (body.success == false) {

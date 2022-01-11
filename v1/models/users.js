@@ -8,6 +8,10 @@ module.exports = mongoose => {
             default: functions.uniqueId(30, "alphanumeric"),
             required: true
         },
+        photo: { 
+            type: Buffer,
+            default: ""
+        },
         name: { 
             type: String,
             required: true

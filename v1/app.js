@@ -68,6 +68,10 @@ resend_code(app)
 reset_password(app)
 verify_code(app)
 
+// ACCOUNT
+const get_user = require('./routes/account/get_user')
+get_user(app)
+
 app.get("/", (req, res) => {
   res.status(200).json({ "status": 200, "message": "Welcome to sparkle api.", "data": null })
 });

@@ -63,7 +63,8 @@ module.exports = function (app) {
                         verification_code: verification_code,
                         name: request.body.name,
                         password: functions.encrypt(request.body.password),
-                        email: request.body.email
+                        email: request.body.email,
+                        is_registered: true
                     })
 
                     //Send email
