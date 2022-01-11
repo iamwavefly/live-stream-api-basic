@@ -310,7 +310,7 @@ var self = module.exports = {
                 "replyToName": process.env.APP_NAME,
                 "to": to,
                 "isTransactional": true
-            },s
+            },
             json: true
         }
         type == "html" ? options.form["bodyHtml"] = body : options.form["bodyText"] = body
