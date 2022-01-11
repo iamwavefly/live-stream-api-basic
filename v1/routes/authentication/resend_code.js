@@ -18,7 +18,7 @@ module.exports = function (app) {
         /* 
         email */
 
-        if (request.body.email && request.body.verification_code) {
+        if (request.body.email) {
 
             let payload = {
                 is_verified: false,
