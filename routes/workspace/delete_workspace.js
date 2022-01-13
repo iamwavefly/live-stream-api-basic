@@ -36,7 +36,6 @@ module.exports = function (app) {
             if (!functions.empty(workspaceExists)) {
                 try {
 
-                    workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
                     WORKSPACE.deleteMany({token: request.body.token, workspace_id: request.body.workspace_id });
