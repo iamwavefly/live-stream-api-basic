@@ -64,6 +64,7 @@ module.exports = function (app) {
                             throw new Error("This user authentication token has expired, login again retry.")
                         }
 
+                        TODO:
                         await USER.findOneAndUpdate(
                             {token: request.body.token, video_id: request.body.video_id },
                             {

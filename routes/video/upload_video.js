@@ -69,7 +69,7 @@ module.exports = function (app) {
 
                 try {
 
-                    if(request.body.file_buffer && request.body.file_url ){
+                    if(!functions.empty(request.body.file_buffer) && !functions.empty(request.body.file_url)){
                         throw new Error("You can't have file buffer and file url at the same time, use only one.")
                     }
 
