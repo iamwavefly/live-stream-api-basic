@@ -34,9 +34,10 @@ module.exports = function (app) {
 
         /* 
         token
+        file_buffer
         */
 
-        if (request.body.token) {
+        if (request.body.token && request.body.file_buffer) {
 
             let payload = {
                 is_verified: false,
@@ -62,12 +63,12 @@ module.exports = function (app) {
                     }
 
                     // UPLOAD FROM FILE
-                    if(request.file){
+                    if(request.body.file_buffer){
 
                         let filename = "profile_photo_"+request.body.token;
                         uploadParams.Key = filename;
 
-                        uploadParams.Body = request.file.buffer;
+                        uploadParams.Body = request.body.file_buffer;
                         const params = uploadParams;
 
                         s3Client.upload(params, async (error, data) => {

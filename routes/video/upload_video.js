@@ -48,7 +48,8 @@ module.exports = function (app) {
 
         /* 
         token
-        workspace_id,
+        workspace_id
+        file_buffer
         file_url
         */
 
@@ -68,6 +69,10 @@ module.exports = function (app) {
 
                 try {
 
+                    if(request.body.file_buffer && request.body.file_url ){
+                        throw new Error("You can't have file buffer and file url at the same time, use only one.")
+                    }
+
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
                     videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
 
@@ -83,12 +88,12 @@ module.exports = function (app) {
                     // UPLOAD VIDEO TO AWS S3
 
                     // UPLOAD FROM FILE
-                    if(request.file){
+                    if(request.body.file_buffer){
 
                         let filename = "video_"+functions.uniqueId(30, "alphanumeric");
                         uploadParams.Key = filename;
 
-                        uploadParams.Body = request.file.buffer;
+                        uploadParams.Body = request.body.file_buffer;
                         const params = uploadParams;
 
                         s3Client.upload(params, async (error, data) => {

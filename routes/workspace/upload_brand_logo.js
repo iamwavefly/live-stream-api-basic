@@ -35,10 +35,11 @@ module.exports = function (app) {
 
         /* 
         token
-        workspace_id
+        workspace_id,
+        file_buffer
         */
 
-        if (request.body.token && request.body.workspace_id) {
+        if (request.body.token && request.body.workspace_id && request.body.file_buffer) {
 
             let payload = {
                 is_verified: false,
@@ -67,12 +68,12 @@ module.exports = function (app) {
                     }
 
                     // UPLOAD FROM FILE
-                    if(request.file){
+                    if(request.body.file_buffer){
 
                         let filename = "brand_logo_"+request.body.token;
                         uploadParams.Key = filename;
 
-                        uploadParams.Body = request.file.buffer;
+                        uploadParams.Body = request.body.file_buffer;
                         const params = uploadParams;
 
                         s3Client.upload(params, async (error, data) => {
