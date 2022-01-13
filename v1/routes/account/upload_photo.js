@@ -1,9 +1,26 @@
 const dateUtil = require('date-fns');
 const path = require("path");
 const functions = require("../../utility/function.js")
+const AWS = require('aws-sdk');
+const multer = require('multer');
+const axios = require('axios');
+const storage = multer.memoryStorage()
+const upload = multer({storage: storage});
 
 const db = require("../../models");
 const USER = db.user;
+
+const s3Client = new AWS.S3({
+    accessKeyId: process.env.S3_ACCESS_KEY,
+    secretAccessKey: process.env.S3_SECRET_KEY,
+    region: process.env.S3_REGION
+});
+
+const uploadParams = {
+    Bucket: process.env.S3_BUCKET, 
+    Key: null,
+    Body: null,
+};
 
 // CACHE
 const NodeCache = require('node-cache');
@@ -13,21 +30,22 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = '/v1/'+path.basename(path.dirname(__filename));
 
-    app.get(`${endpoint_category}/get_user`, async (request, response) => {
+    app.put(`${endpoint_category}/upload_photo`, upload.single("file"), async (request, response) => {
 
         /* 
-        token */
+        token
+        */
 
-        if (request.query.token) {
+        if (request.body.token) {
 
             let payload = {
                 is_verified: false,
                 is_blocked: false,
                 is_registered: false,
-                token: request.query.token
+                token: request.body.token
             }
 
-            let userExists = await USER.find({ token: request.query.token})
+            let userExists = await USER.find({ token: request.body.token})
 
             if (!functions.empty(userExists)) {
                 try {
@@ -43,24 +61,40 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-                    // Check if cached is expired
-                    const cache_key = `${request.route.path}_${request.query.token}`;
-                    if (cache.has(cache_key)) {
-                        const report = cache.get(cache_key);
-                        payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
-                        payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
-                        payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                        payload["profile"] = report
-                        response.status(200).json({ "status": 200, "message": `User account details has been fetched successfully.`, "data": payload });
-                        return true;
+                    // UPLOAD FROM FILE
+                    if(request.file){
+
+                        let filename = "profile_photo_"+request.body.token;
+                        uploadParams.Key = filename;
+
+                        uploadParams.Body = request.file.buffer;
+                        const params = uploadParams;
+
+                        s3Client.upload(params, async (error, data) => {
+
+                            if (error) {
+                                throw new Error(error.message)
+                            }
+
+                            let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
+                            await USER.findOneAndUpdate(
+                                {token: request.body.token},
+                                {
+                                    photo: file_path,
+                                }
+                            );
+
+                        });
+
+                    }else{
+                        throw new Error("No file to upload found, check and try again.")
                     }
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                     payload["profile"] = userExists,
-                    cache.set(cache_key, userExists);
-                    response.status(200).json({ "status": 200, "message": "User account details has been fetched successfully.", "data": payload });
+                    response.status(200).json({ "status": 200, "message": "User account details has been edited successfully.", "data": payload });
                 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });

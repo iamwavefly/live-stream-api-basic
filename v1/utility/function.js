@@ -189,12 +189,12 @@ var self = module.exports = {
         }, {});
     },
 
-    paginateObject: (items, page, per_page) => {
+    pagainateObject: (items, page, per_page) => {
         var page = page || 1,
             per_page = per_page || 10,
             offset = (page - 1) * per_page,
 
-            paginatedItems = items.slice(offset).slice(0, per_page),
+            pagainatedItems = items.slice(offset).slice(0, per_page),
             total_pages = Math.ceil(items.length / per_page);
         return {
             page: Number(page),
@@ -203,7 +203,7 @@ var self = module.exports = {
             next_page: (total_pages > page) ? Number(page) + 1 : null,
             total: items.length,
             total_pages: total_pages,
-            data: paginatedItems
+            data: pagainatedItems
         };
     },
 

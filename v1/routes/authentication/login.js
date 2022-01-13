@@ -13,7 +13,7 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = '/v1/'+path.basename(path.dirname(__filename));
 
-    app.post(`${endpoint_category}/login`, async function (request, response) {
+    app.post(`${endpoint_category}/login`, async (request, response) => {
 
         /* 
         email
@@ -73,13 +73,15 @@ module.exports = function (app) {
                         payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                         payload["name"] = userExists.name
 
-                        let new_token = functions.uniqueId(30, "alphanumeric");
+                        let new_token = userExists.token; //functions.uniqueId(30, "alphanumeric");
 
-                        USER.update({"email": request.body.email },
-                        {$set: { 
-                            "token": new_token,
-                            token_expiry: dateUtil.addMinutes(new Date(), process.env.TOKEN_EXPIRY_MINUTES).toISOString()
-                        }});
+                        await USER.findOneAndUpdate(
+                            {email: request.body.email},
+                            {
+                                token: userExists,
+                                token_expiry: dateUtil.addMinutes(new Date(), process.env.TOKEN_EXPIRY_MINUTES).toISOString()
+                            }
+                        );
 
                         payload["token"] = new_token
 

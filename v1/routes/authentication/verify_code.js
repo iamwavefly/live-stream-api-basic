@@ -13,7 +13,7 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = '/v1/'+path.basename(path.dirname(__filename));
 
-    app.post(`${endpoint_category}/verify_code`, async function (request, response) {
+    app.post(`${endpoint_category}/verify_code`, async (request, response) => {
 
         /* 
         email
@@ -40,17 +40,19 @@ module.exports = function (app) {
 
                 if (functions.empty(userExists)) {
 
-                    response.status(400).json({ "status": 400, "message": "Verification code didn't match this user credentials.", "data": payload });
-                
+                    throw new Error("Verification code didn't match this user credentials.")
+
                 } else {
 
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
-                    USER.update({"email": request.body.email },
-                    {$set: { 
-                        verification_code: "",
-                        is_verified: true
-                    }});
+                    await USER.findOneAndUpdate(
+                        {email: request.body.email},
+                        {
+                            verification_code: "",
+                            is_verified: true
+                        }
+                    );
 
                     // Send email
                     let subject = `Your are to ${functions.ucwords(process.env.APP_NAME)}`;

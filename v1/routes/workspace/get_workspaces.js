@@ -4,6 +4,7 @@ const functions = require("../../utility/function.js")
 
 const db = require("../../models");
 const USER = db.user;
+const WORKSPACE = db.workspace;
 
 // CACHE
 const NodeCache = require('node-cache');
@@ -13,10 +14,11 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = '/v1/'+path.basename(path.dirname(__filename));
 
-    app.get(`${endpoint_category}/get_user`, async (request, response) => {
+    app.get(`${endpoint_category}/get_workspaces`, async (request, response) => {
 
         /* 
-        token */
+        token
+        */
 
         if (request.query.token) {
 
@@ -28,6 +30,7 @@ module.exports = function (app) {
             }
 
             let userExists = await USER.find({ token: request.query.token})
+            let workspaceExists = await WORKSPACE.find({ token: request.query.token})
 
             if (!functions.empty(userExists)) {
                 try {
@@ -50,7 +53,7 @@ module.exports = function (app) {
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                         payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                         payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                        payload["profile"] = report
+                        payload["workspaces"] = report
                         response.status(200).json({ "status": 200, "message": `User account details has been fetched successfully.`, "data": payload });
                         return true;
                     }
@@ -58,9 +61,9 @@ module.exports = function (app) {
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                    payload["profile"] = userExists,
-                    cache.set(cache_key, userExists);
-                    response.status(200).json({ "status": 200, "message": "User account details has been fetched successfully.", "data": payload });
+                    payload["workspaces"] = workspaceExists,
+                    cache.set(cache_key, workspaceExists);
+                    response.status(200).json({ "status": 200, "message": "Workspace workspaces has been fetched successfully.", "data": payload });
                 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });

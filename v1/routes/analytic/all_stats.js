@@ -4,6 +4,9 @@ const functions = require("../../utility/function.js")
 
 const db = require("../../models");
 const USER = db.user;
+const VIDEO = db.video;
+const WORKSPACE = db.workspace;
+const TEAM = db.team;
 
 // CACHE
 const NodeCache = require('node-cache');
@@ -13,10 +16,11 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = '/v1/'+path.basename(path.dirname(__filename));
 
-    app.get(`${endpoint_category}/get_user`, async (request, response) => {
+    app.get(`${endpoint_category}/all_stats`, async (request, response) => {
 
         /* 
-        token */
+        token
+        */
 
         if (request.query.token) {
 
@@ -24,12 +28,16 @@ module.exports = function (app) {
                 is_verified: false,
                 is_blocked: false,
                 is_registered: false,
-                token: request.query.token
+                token: ""
             }
 
-            let userExists = await USER.find({ token: request.query.token})
+            let userExists = await USER.find({token: request.query.token})
+            let videoExists = await VIDEO.find({token: request.query.token})
+            let workspaceExists = await WORKSPACE.find({token: request.query.token})
+            let teamExists = await TEAM.find({token: request.query.token})
 
             if (!functions.empty(userExists)) {
+
                 try {
 
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
@@ -43,24 +51,22 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-                    // Check if cached is expired
-                    const cache_key = `${request.route.path}_${request.query.token}`;
-                    if (cache.has(cache_key)) {
-                        const report = cache.get(cache_key);
-                        payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
-                        payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
-                        payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                        payload["profile"] = report
-                        response.status(200).json({ "status": 200, "message": `User account details has been fetched successfully.`, "data": payload });
-                        return true;
+                    let stats_object = {
+                        total_visits: videoExists.reduce((accumulator, current) => accumulator + current.visits, 0),
+                        total_plays: videoExists.reduce((accumulator, current) => accumulator + current.plays, 0),
+                        total_clicks: videoExists.reduce((accumulator, current) => accumulator + current.clicks, 0),
+                        total_likes: videoExists.reduce((accumulator, current) => accumulator + current.likes, 0),
+                        total_workspaces: workspaceExists.length,
+                        total_videos: videoExists.length,
+                        total_team: teamExists.length
                     }
-
+                    
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                    payload["profile"] = userExists,
-                    cache.set(cache_key, userExists);
-                    response.status(200).json({ "status": 200, "message": "User account details has been fetched successfully.", "data": payload });
+                    payload["token"] = userExists.token
+                    payload["stats"] = stats_object,
+                    response.status(200).json({ "status": 200, "message": "All account stats has been set successfully.", "data": payload });
                 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });

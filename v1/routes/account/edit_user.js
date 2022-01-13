@@ -13,21 +13,28 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = '/v1/'+path.basename(path.dirname(__filename));
 
-    app.get(`${endpoint_category}/get_user`, async (request, response) => {
+    app.put(`${endpoint_category}/edit_user`, async (request, response) => {
 
         /* 
-        token */
+        token
+        name
+        gender
+        country
+        currency
+        job_title
+        phone
+        */
 
-        if (request.query.token) {
+        if (request.body.token) {
 
             let payload = {
                 is_verified: false,
                 is_blocked: false,
                 is_registered: false,
-                token: request.query.token
+                token: request.body.token
             }
 
-            let userExists = await USER.find({ token: request.query.token})
+            let userExists = await USER.find({ token: request.body.token})
 
             if (!functions.empty(userExists)) {
                 try {
@@ -43,24 +50,23 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-                    // Check if cached is expired
-                    const cache_key = `${request.route.path}_${request.query.token}`;
-                    if (cache.has(cache_key)) {
-                        const report = cache.get(cache_key);
-                        payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
-                        payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
-                        payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                        payload["profile"] = report
-                        response.status(200).json({ "status": 200, "message": `User account details has been fetched successfully.`, "data": payload });
-                        return true;
-                    }
+                    await USER.findOneAndUpdate(
+                        {token: request.body.token},
+                        {
+                            name: functions.empty(request.body.name)? userExists.name : request.body.name,
+                            gender: functions.empty(request.body.gender)? userExists.gender : request.body.gender,
+                            country: functions.empty(request.body.country)? userExists.country : request.body.country,
+                            currency: functions.empty(request.body.currency)? userExists.currency : request.body.currency,
+                            job_title: functions.empty(request.body.job_title)? userExists.job_title : request.body.job_title,
+                            phone: functions.empty(request.body.phone)? userExists.phone : request.body.phone
+                        }
+                    );
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                     payload["profile"] = userExists,
-                    cache.set(cache_key, userExists);
-                    response.status(200).json({ "status": 200, "message": "User account details has been fetched successfully.", "data": payload });
+                    response.status(200).json({ "status": 200, "message": "User account details has been edited successfully.", "data": payload });
                 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });

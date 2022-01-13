@@ -53,6 +53,7 @@ app.use(bodyParser.urlencoded({
 //STATIC
 app.use('/media', express.static('media'))
 
+
 // ROUTES
 
 // AUTHENTICATION
@@ -61,7 +62,6 @@ const signup = require('./routes/authentication/signup')
 const resend_code = require('./routes/authentication/resend_code')
 const reset_password = require('./routes/authentication/reset_password')
 const verify_code = require('./routes/authentication/verify_code')
-
 login(app)
 signup(app)
 resend_code(app)
@@ -70,7 +70,66 @@ verify_code(app)
 
 // ACCOUNT
 const get_user = require('./routes/account/get_user')
+const edit_user = require('./routes/account/edit_user')
+const change_password = require('./routes/account/change_password')
+const upload_photo = require('./routes/account/upload_photo')
 get_user(app)
+edit_user(app)
+change_password(app)
+upload_photo(app)
+
+// WORKSPACE
+const create_workspace = require('./routes/workspace/create_workspace')
+const edit_workspace = require('./routes/workspace/edit_workspace')
+const delete_workspace = require('./routes/workspace/delete_workspace')
+const get_workspaces = require('./routes/workspace/get_workspaces')
+const save_brand_styles = require('./routes/workspace/save_brand_styles')
+const upload_brand_logo = require('./routes/workspace/upload_brand_logo')
+create_workspace(app)
+edit_workspace(app)
+delete_workspace(app)
+get_workspaces(app)
+save_brand_styles(app)
+upload_brand_logo(app)
+
+// VIDEO
+const upload_video = require('./routes/video/upload_video')
+const edit_video = require('./routes/video/edit_video')
+const delete_video = require('./routes/video/delete_video')
+const get_videos = require('./routes/video/get_videos')
+upload_video(app)
+edit_video(app)
+delete_video(app)
+get_videos(app)
+
+// ANALYTIC
+const set_visits = require('./routes/analytic/set_visits')
+const set_plays = require('./routes/analytic/set_plays')
+const set_clicks = require('./routes/analytic/set_clicks')
+const set_likes = require('./routes/analytic/set_likes')
+const all_stats = require('./routes/analytic/all_stats')
+set_visits(app)
+set_plays(app)
+set_clicks(app)
+set_likes(app)
+all_stats(app)
+
+// TEAM
+const create_team = require('./routes/team/create_team')
+const edit_team = require('./routes/team/edit_team')
+const delete_team = require('./routes/team/delete_team')
+const get_teams = require('./routes/team/get_teams')
+create_team(app)
+edit_team(app)
+delete_team(app)
+get_teams(app)
+
+// NOTIFICATION
+const get_notifications = require('./routes/notification/get_notifications')
+const create_notification = require('./routes/notification/create_notification')
+get_notifications(app)
+create_notification(app)
+
 
 app.get("/", (req, res) => {
   res.status(200).json({ "status": 200, "message": "Welcome to sparkle api.", "data": null })

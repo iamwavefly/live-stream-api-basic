@@ -13,21 +13,24 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = '/v1/'+path.basename(path.dirname(__filename));
 
-    app.get(`${endpoint_category}/get_user`, async (request, response) => {
+    app.put(`${endpoint_category}/change_password`, async (request, response) => {
 
         /* 
-        token */
+        token
+        new_password
+        confirm_password
+        */
 
-        if (request.query.token) {
+        if (request.body.token && request.body.new_password && request.body.confirm_password) {
 
             let payload = {
                 is_verified: false,
                 is_blocked: false,
                 is_registered: false,
-                token: request.query.token
+                token: request.body.token
             }
 
-            let userExists = await USER.find({ token: request.query.token})
+            let userExists = await USER.find({ token: request.body.token})
 
             if (!functions.empty(userExists)) {
                 try {
@@ -43,24 +46,26 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-                    // Check if cached is expired
-                    const cache_key = `${request.route.path}_${request.query.token}`;
-                    if (cache.has(cache_key)) {
-                        const report = cache.get(cache_key);
+                    // Check if new password matches old password
+                    if (request.body.new_password !== request.body.confirm_password) {
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                         payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                         payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                        payload["profile"] = report
-                        response.status(200).json({ "status": 200, "message": `User account details has been fetched successfully.`, "data": payload });
-                        return true;
+                        throw new Error("The new password doesn't match the password confirmation, Please check and trya again.")
                     }
+
+                    await USER.findOneAndUpdate(
+                        {token: request.body.token},
+                        {
+                            password: functions.encrypt(request.body.new_password)
+                        }
+                    );
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                     payload["profile"] = userExists,
-                    cache.set(cache_key, userExists);
-                    response.status(200).json({ "status": 200, "message": "User account details has been fetched successfully.", "data": payload });
+                    response.status(200).json({ "status": 200, "message": "User account password has been changed successfully.", "data": payload });
                 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });

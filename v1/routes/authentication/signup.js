@@ -13,7 +13,7 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = '/v1/'+path.basename(path.dirname(__filename));
 
-    app.post(`${endpoint_category}/signup`, async function (request, response) {
+    app.post(`${endpoint_category}/signup`, async (request, response) => {
 
         /* 
         name
@@ -54,13 +54,11 @@ module.exports = function (app) {
                 if (!functions.empty(userExists)) {
 
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                    response.status(400).json({ "status": 400, "message": "This email address has been registered already, try another email address.", "data": payload });
-                
+                    throw new Error("This email address has been registered already, try another email address.")
+
                 } else {
 
-                    let verification_code = functions.uniqueId(6, "number");
                     await USER.create({
-                        verification_code: verification_code,
                         name: request.body.name,
                         password: functions.encrypt(request.body.password),
                         email: request.body.email,

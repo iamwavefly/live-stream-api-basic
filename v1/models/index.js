@@ -12,5 +12,9 @@ db.mongoose = mongoose;
 db.url = db_url;
 
 db.user = require("../models/users")(mongoose);
+db.workspace = require("../models/workspaces")(mongoose);
+db.video = require("../models/videos")(mongoose);
+db.team = require("../models/teams")(mongoose);
+db.notification = require("../models/notifications")(mongoose);
 
 module.exports = db;
