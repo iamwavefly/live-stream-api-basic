@@ -17,7 +17,7 @@ module.exports = function (app) {
 
         /* 
         email
-        verification_code */
+        */
 
         if (request.body.email) {
 
@@ -41,7 +41,7 @@ module.exports = function (app) {
                 if (functions.empty(userExists)) {
 
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                    throw new Error("Verification code didn't match this user credentials.")
+                    throw new Error("No user account matches the entered credentials.")
 
                 } else {
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
