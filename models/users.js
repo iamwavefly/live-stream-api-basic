@@ -18,7 +18,7 @@ module.exports = mongoose => {
             type: String,
             lowercase: true,
             required: true,
-            match: [/^[a-zA-Z0-9]+$/, 'The name entered is invalid, check and retry.'],
+            match: [/^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u, 'The name entered is invalid, check and retry.'],
             index: true
         },
         gender: {
