@@ -15,6 +15,7 @@
   "author": "BlueCodeTech",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1056.0",
     "axios": "^0.24.0",
     "body-parser": "^1.19.1",
     "cluster": "^0.7.7",
@@ -26,6 +27,7 @@
     "helmet": "^5.0.1",
     "mongoose": "^6.1.6",
     "mongoose-unique-validator": "^3.0.0",
+    "multer": "^1.4.4",
     "node-cache": "^5.1.2",
     "nodemon": "^2.0.15",
     "path": "^0.12.7",
