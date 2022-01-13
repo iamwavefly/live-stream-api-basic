@@ -52,46 +52,42 @@ module.exports = mongoose => {
             type: String,
             default: ""
         },
-        page: [
-            {
-                title: {
+        page: {
+            title: {
+                type: String,
+                default: ""
+            },
+            description: {
+                type: String,
+                default: ""
+            },
+            tags: {
+                type: Array,
+                default: []
+            },
+            call_to_action: {
+                status: {
+                    type: Boolean,
+                    default: false
+                }, 
+                button_text: {
+                    type: String,
+                    default: "test"
+                },
+                button_color: {
+                    type: String,
+                    default: "#000000"
+                },
+                button_font: {
+                    type: String,
+                    default: "arial"
+                },
+                button_url: {
                     type: String,
                     default: ""
                 },
-                description: {
-                    type: String,
-                    default: ""
-                },
-                tags: {
-                    type: Array,
-                    default: []
-                },
-                call_to_action: [
-                    {
-                       status: {
-                            type: Boolean,
-                            default: false
-                        }, 
-                        button_text: {
-                            type: String,
-                            default: "test"
-                        },
-                        button_color: {
-                            type: String,
-                            default: "#000000"
-                        },
-                        button_font: {
-                            type: String,
-                            default: "arial"
-                        },
-                        button_url: {
-                            type: String,
-                            default: ""
-                        },
-                    }
-                ]
             }
-        ]
+        }
     }, { timestamps: true });
 
     const Video = mongoose.model("video", schema);

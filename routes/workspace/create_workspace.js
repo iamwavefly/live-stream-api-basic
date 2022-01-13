@@ -32,6 +32,7 @@ module.exports = function (app) {
             }
 
             let userExists = await USER.find({ token: request.body.token})
+            let workspaceExists = await WORKSPACE.find({ token: request.body.token, name: request.body.name})
             
             if (!functions.empty(userExists)) {
                 
@@ -47,7 +48,7 @@ module.exports = function (app) {
                             category: request.body.category
                         })
 
-                        let workspaceExists = await WORKSPACE.find({ token: request.body.token})
+                        workspaceExists = await WORKSPACE.find({ token: request.body.token})
 
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                         payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
