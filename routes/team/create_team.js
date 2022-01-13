@@ -53,11 +53,13 @@ module.exports = function (app) {
                             password: request.body.password
                         })
 
+                        teamExists = await TEAM.find({ token: request.body.token, workspace_id: request.body.workspace_id})
+
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                         payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                         payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                         payload["teams"] = teamExists,
-                        response.status(200).json({ "status": 200, "message": "User teams list has been fetched successfully.", "data": payload });
+                        response.status(200).json({ "status": 200, "message": "User team has been saved successfully.", "data": payload });
                     
                     } catch (e) {
                         response.status(400).json({ "status": 400, "message": e.message, "data": payload });

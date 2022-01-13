@@ -20,6 +20,18 @@ module.exports = function (app) {
         token
         video_id
         name
+        page: {
+            title,
+            description,
+            tags,
+            call_to_action: {
+                status, 
+                button_text
+                button_color
+                button_font
+                button_url
+            }
+        }
         */
 
         if (request.body.token && request.body.video_id) {
@@ -55,7 +67,19 @@ module.exports = function (app) {
                         await USER.findOneAndUpdate(
                             {token: request.body.token, video_id: request.body.video_id },
                             {
-                                name: functions.empty(request.body.name)? videoExists.name : request.body.name
+                                name: functions.empty(request.body.name)? videoExists.name : request.body.name,
+                                page: {
+                                    title: "",
+                                    description: "",
+                                    tags: "",
+                                    call_to_action: {
+                                        status: "", 
+                                        button_text: "",
+                                        button_color: "",
+                                        button_font: "",
+                                        button_url: ""
+                                    }
+                                }
                             }
                         );
 

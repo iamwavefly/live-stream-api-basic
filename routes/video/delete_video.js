@@ -18,7 +18,7 @@ module.exports = function (app) {
 
         /* 
         token
-        videos_id
+        video_id
         */
 
         if (request.body.token && request.body.video_id) {
@@ -39,7 +39,7 @@ module.exports = function (app) {
                     videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
-                    VIDEO.deleteMany({token: request.body.token, video_id: request.body.video_id });
+                    VIDEO.findOneAndDelete({token: request.body.token, video_id: request.body.video_id });
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
