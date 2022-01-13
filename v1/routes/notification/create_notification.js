@@ -14,7 +14,7 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
 
-    app.post(`${endpoint_category}/create_notification`, async (request, response) => {
+    app.post(`/${endpoint_category}/create_notification`, async (request, response) => {
 
         /* 
         token

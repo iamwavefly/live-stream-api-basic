@@ -11,7 +11,7 @@ module.exports = mongoose => {
             index: true
         },
         photo: { 
-            type: Buffer,
+            type: String,
             default: ""
         },
         name: { 

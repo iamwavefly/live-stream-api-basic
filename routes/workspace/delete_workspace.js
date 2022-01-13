@@ -14,7 +14,7 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
 
-    app.delete(`${endpoint_category}/delete_workspace`, async (request, response) => {
+    app.delete(`/${endpoint_category}/delete_workspace`, async (request, response) => {
 
         /* 
         token

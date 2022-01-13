@@ -13,7 +13,7 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
 
-    app.put(`${endpoint_category}/edit_user`, async (request, response) => {
+    app.put(`/${endpoint_category}/edit_user`, async (request, response) => {
 
         /* 
         token

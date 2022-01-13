@@ -44,7 +44,7 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
 
-    app.post(`${endpoint_category}/upload_video`, upload.single("file"), async (request, response) => {
+    app.post(`/${endpoint_category}/upload_video`, upload.single("file"), async (request, response) => {
 
         /* 
         token

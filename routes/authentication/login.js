@@ -12,8 +12,8 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
-
-    app.post(`${endpoint_category}/login`, async (request, response) => {
+    
+    app.post(`/${endpoint_category}/login`, async (request, response) => {
 
         /* 
         email
@@ -39,8 +39,7 @@ module.exports = function (app) {
                 return true;
             }
 
-            let encrypted_password = functions.encrypt(request.body.password)
-            let userExists = await USER.find({ email: request.body.email, password: encrypted_password})
+            let userExists = await USER.find({ email: request.body.email})
             
             if (!functions.empty(userExists)) {
 
@@ -66,7 +65,8 @@ module.exports = function (app) {
 
                 try {
 
-                    if (userExists.password === encrypted_password) {
+                    let decrypted_password = await functions.decrypt(userExists.password)
+                    if (decrypted_password === request.body.password) {
 
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                         payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
@@ -74,19 +74,17 @@ module.exports = function (app) {
                         payload["name"] = userExists.name
 
                         let new_token = userExists.token; //functions.uniqueId(30, "alphanumeric");
+                        payload["token"] = new_token
 
                         await USER.findOneAndUpdate(
                             {email: request.body.email},
                             {
-                                token: userExists,
+                                token: new_token,
                                 token_expiry: dateUtil.addMinutes(new Date(), process.env.TOKEN_EXPIRY_MINUTES).toISOString()
                             }
                         );
 
-                        payload["token"] = new_token
-
                         response.status(200).json({ "status": 200, "message": "User login details has been verified successfully.", "data": payload });
-                        
 
                     } else {
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
