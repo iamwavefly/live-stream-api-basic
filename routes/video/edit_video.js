@@ -64,21 +64,20 @@ module.exports = function (app) {
                             throw new Error("This user authentication token has expired, login again retry.")
                         }
 
-                        TODO:
                         await USER.findOneAndUpdate(
                             {token: request.body.token, video_id: request.body.video_id },
                             {
                                 name: functions.empty(request.body.name)? videoExists.name : request.body.name,
                                 page: {
-                                    title: "",
-                                    description: "",
-                                    tags: "",
+                                    title: functions.empty(request.body.page.title)? videoExists.page.title : request.body.page.title,
+                                    description: functions.empty(request.body.page.description)? videoExists.page.description : request.body.page.description,
+                                    tags: functions.empty(request.body.page.tags)? videoExists.page.tags : request.body.page.tags,
                                     call_to_action: {
-                                        status: "", 
-                                        button_text: "",
-                                        button_color: "",
-                                        button_font: "",
-                                        button_url: ""
+                                        status: functions.empty(request.body.page.call_to_action.status)? videoExists.page.call_to_action.status : request.body.page.call_to_action.status, 
+                                        button_text: functions.empty(request.body.page.call_to_action.button_text)? videoExists.page.call_to_action.button_text : request.body.page.call_to_action.button_text,
+                                        button_color: functions.empty(request.body.page.call_to_action.button_color)? videoExists.page.call_to_action.button_color : request.body.page.call_to_action.button_color,
+                                        button_font: functions.empty(request.body.page.call_to_action.button_font)? videoExists.page.call_to_action.button_font : request.body.page.call_to_action.button_font,
+                                        button_url: functions.empty(request.body.page.call_to_action.button_url)? videoExists.page.call_to_action.button_url : request.body.page.call_to_action.button_url
                                     }
                                 }
                             }

@@ -16,5 +16,6 @@ db.workspace = require("../models/workspaces")(mongoose);
 db.video = require("../models/videos")(mongoose);
 db.team = require("../models/teams")(mongoose);
 db.notification = require("../models/notifications")(mongoose);
+db.message = require("../models/messages")(mongoose);
 
 module.exports = db;

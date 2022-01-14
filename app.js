@@ -130,6 +130,12 @@ const create_notification = require('./routes/notification/create_notification')
 get_notifications(app)
 create_notification(app)
 
+// MESSAGE
+const get_messages = require('./routes/message/get_messages')
+const create_message = require('./routes/message/create_message')
+get_messages(app)
+create_message(app)
+
 
 app.get("/", (req, res) => {
   res.status(200).json({ "status": 200, "message": "Welcome to sparkle api.", "data": null })
