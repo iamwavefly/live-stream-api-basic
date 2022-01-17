@@ -138,6 +138,14 @@ const create_message = require('./routes/message/create_message')
 get_messages(app)
 create_message(app)
 
+// FEEDBACK
+const get_feedbacks = require('./routes/message/get_feedbacks')
+const create_feedback = require('./routes/message/create_feedback')
+const delete_feedback = require('./routes/message/delete_feedback')
+get_feedbacks(app)
+create_feedback(app)
+delete_feedback(app)
+
 
 app.get("/", (req, res) => {
   res.status(200).json({ "status": 200, "message": "Welcome to sparkle api.", "data": null })
