@@ -88,10 +88,6 @@ module.exports = mongoose => {
                 },
             }
         },
-        is_requested: {
-            type: Boolean,
-            default: false
-        },
     }, { timestamps: true });
 
     const Video = mongoose.model("video", schema);

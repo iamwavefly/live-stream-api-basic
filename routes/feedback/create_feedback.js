@@ -9,7 +9,7 @@ const upload = multer({storage: storage});
 
 const db = require("../../models");
 const USER = db.user;
-const VIDEO = db.video;
+const FEEDBACK = db.feedback;
 
 const s3Client = new AWS.S3({
     accessKeyId: process.env.S3_ACCESS_KEY,
@@ -44,16 +44,20 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
 
-    app.post(`/${endpoint_category}/upload_video`, upload.single("file"), async (request, response) => {
+    app.post(`/${endpoint_category}/create_feedback`, upload.single("file"), async (request, response) => {
 
         /* 
         token
         workspace_id
+        name
+        email
+        type
         file_buffer
         file_url
+        text
         */
 
-        if (request.body.token && request.body.workspace_id) {
+        if (request.body.token && request.body.workspace_id && request.body.name && request.body.email && request.body.type) {
 
             let payload = {
                 is_verified: false,
@@ -63,7 +67,7 @@ module.exports = function (app) {
             }
 
             let userExists = await USER.find({ token: request.body.token})
-            let videoExists = await VIDEO.find({ token: request.body.token})
+            let feedbackExists = await FEEDBACK.find({ token: request.body.token, workspace_id: request.body.workspace_id})
             
             if (!functions.empty(userExists)) {
 
@@ -74,7 +78,7 @@ module.exports = function (app) {
                     }
 
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
-                    videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
+                    feedbackExists = Array.isArray(feedbackExists)? feedbackExists[0] : feedbackExists;
 
                     // Check if token has expired
                     const difference = Math.abs(dateUtil.differenceInMinutes(new Date(userExists.token_expiry), new Date()))
@@ -85,12 +89,12 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-                    // UPLOAD VIDEO TO AWS S3
+                    // UPLOAD FEEDBACK TO AWS S3
 
                     // UPLOAD FROM FILE
                     if(request.body.file_buffer){
 
-                        let filename = "video_"+functions.uniqueId(30, "alphanumeric");
+                        let filename = "feedback_"+functions.uniqueId(30, "alphanumeric");
                         uploadParams.Key = filename;
 
                         uploadParams.Body = request.body.file_buffer;
@@ -102,13 +106,13 @@ module.exports = function (app) {
                             }
 
                             let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
-                            await VIDEO.create({
+                            await FEEDBACK.create({
                                 token: request.body.token,
                                 workspace_id: request.body.workspace_id,
-                                name: filename,
+                                name: request.body.name,
+                                email: request.body.email,
+                                type: request.body.type,
                                 url: file_path,
-                                email_embed_code: `<div style="background-image:url(https://thumbnail.sendspark.com/animated/244k40wq334aicmbpjppv1f90q3qoxjk.5ce040d11da6691af7fc16711d23fcf6fd06e18f/sendspark-animated-thumbnail-244k40wq.gif);background-size:contain;background-repeat:no-repeat;background-position:center center;margin:0 auto;animation:playable-reveal 1s;overflow:hidden;"> <div style="position:relative;height:0;max-height:0;padding-bottom:56.25%;"> <video width="100%" height="auto" controls="controls" poster="https://thumbnail.sendspark.com/animated/244k40wq334aicmbpjppv1f90q3qoxjk.5ce040d11da6691af7fc16711d23fcf6fd06e18f/sendspark-animated-thumbnail-244k40wq.gif" src="https://stream.mux.com/L2FIt6ZYaFUwpr1we1ZDDW4w29EnCGnv/high.mp4" > <a href=https://sendspark.com/share/dg84k6urwjt3e61a> <img src="https://thumbnail.sendspark.com/animated/244k40wq334aicmbpjppv1f90q3qoxjk.5ce040d11da6691af7fc16711d23fcf6fd06e18f/sendspark-animated-thumbnail-244k40wq.gif" alt="Animated thumbnail for video" style="width: 100%;" > </a> </video> </div> </div>`,
-                                website_embed_code: `<div style="position:relative;height:0;width:100%;padding-bottom:56.25%"><iframe src="https://sendspark.com/embed/244k40wq334aicmbpjppv1f90q3qoxjk" frameBorder="0" style="position:absolute;width:100%;height:100%;border-radius:6px;left:0;top:0" allowfullscreen=""></iframe></div>`
                             })
                         });
 
@@ -119,16 +123,18 @@ module.exports = function (app) {
                         if(request.body.file_url){
                             if(functions.validURL(request.body.file_url)){
 
-                                let filename = "video_"+functions.uniqueId(30, "alphanumeric");
+                                let filename = "feedback_"+functions.uniqueId(30, "alphanumeric");
                                 uploadParams.Key = filename;
 
                                 uploadUrlToS3(request.body.file_url).then(async (data) => {
                                     let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
-                                    await VIDEO.create({
+                                    await FEEDBACK.create({
                                         token: request.body.token,
                                         workspace_id: request.body.workspace_id,
-                                        name: filename,
-                                        url: file_path
+                                        name: request.body.name,
+                                        email: request.body.email,
+                                        type: request.body.type,
+                                        url: file_path,
                                     })
                                 }).catch((error) => {
                                     throw new Error(error.message)
@@ -145,8 +151,8 @@ module.exports = function (app) {
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                    payload["videos"] = videoExists,
-                    response.status(200).json({ "status": 200, "message": "Hurray! video has uploaded successfully.", "data": payload });
+                    payload["feedbacks"] = feedbackExists,
+                    response.status(200).json({ "status": 200, "message": "Hurray! feedback has been saved successfully.", "data": payload });
 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });
