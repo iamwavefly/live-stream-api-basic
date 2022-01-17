@@ -58,11 +58,14 @@ module.exports = function (app) {
 
                 } else {
 
+                    let verification_code = functions.uniqueId(6, "number");
+
                     await USER.create({
                         name: request.body.name,
                         password: functions.encrypt(request.body.password),
                         email: request.body.email,
-                        is_registered: true
+                        is_registered: true,
+                        verification_code: verification_code,
                     })
 
                     //Send email

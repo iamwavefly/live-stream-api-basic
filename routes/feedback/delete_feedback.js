@@ -52,7 +52,7 @@ module.exports = function (app) {
                 }
 
             } else {
-                response.status(400).json({ "status": 400, "message": "User feedback credentials doesn't match any record, check and retry.", "data": payload });
+                response.status(400).json({ "status": 400, "message": "Workspace feedback credentials doesn't match any record, check and retry.", "data": payload });
             }
 
         } else {
