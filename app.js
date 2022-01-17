@@ -137,9 +137,9 @@ get_messages(app)
 create_message(app)
 
 // FEEDBACK
-const get_feedbacks = require('./routes/message/get_feedbacks')
-const create_feedback = require('./routes/message/create_feedback')
-const delete_feedback = require('./routes/message/delete_feedback')
+const get_feedbacks = require('./routes/feedback/get_feedbacks')
+const create_feedback = require('./routes/feedback/create_feedback')
+const delete_feedback = require('./routes/feedback/delete_feedback')
 get_feedbacks(app)
 create_feedback(app)
 delete_feedback(app)
