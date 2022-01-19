@@ -145,7 +145,7 @@ create_feedback(app)
 delete_feedback(app)
 
 // TEMPLATE
-const get_templates = require('./routes/feedback/get_templates')
+const get_templates = require('./routes/templates/get_templates')
 get_templates(app)
 
 
