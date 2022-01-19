@@ -144,6 +144,10 @@ get_feedbacks(app)
 create_feedback(app)
 delete_feedback(app)
 
+// TEMPLATE
+const get_templates = require('./routes/feedback/get_templates')
+get_templates(app)
+
 
 app.get("/", (req, res) => {
   res.status(200).json({ "status": 200, "message": "Welcome to sparkle api.", "data": null })
