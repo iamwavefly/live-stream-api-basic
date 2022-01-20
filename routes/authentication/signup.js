@@ -61,6 +61,7 @@ module.exports = function (app) {
                     let verification_code = functions.uniqueId(6, "number");
 
                     await USER.create({
+                        token: functions.uniqueId(30, "alphanumeric"),
                         name: request.body.name,
                         password: functions.encrypt(request.body.password),
                         email: request.body.email,

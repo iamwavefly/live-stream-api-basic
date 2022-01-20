@@ -5,7 +5,6 @@ module.exports = mongoose => {
   let schema = mongoose.Schema({
         notification_id: { 
             type: String,
-            default: functions.uniqueId(10, "alphanumeric"),
             required: true
         },
         workspace_id: { 

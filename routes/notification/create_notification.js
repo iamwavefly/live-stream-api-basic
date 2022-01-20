@@ -41,6 +41,7 @@ module.exports = function (app) {
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
                     await NOTIFICATION.create({
+                        notification_id: functions.uniqueId(10, "alphanumeric"),
                         token: request.body.token,
                         workspace_id: request.body.workspace_id,
                         name: request.body.name,

@@ -103,6 +103,7 @@ module.exports = function (app) {
 
                             let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
                             await VIDEO.create({
+                                video_id: functions.uniqueId(10, "alphanumeric"),
                                 token: request.body.token,
                                 workspace_id: request.body.workspace_id,
                                 name: filename,
@@ -125,6 +126,7 @@ module.exports = function (app) {
                                 uploadUrlToS3(request.body.file_url).then(async (data) => {
                                     let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
                                     await VIDEO.create({
+                                        video_id: functions.uniqueId(10, "alphanumeric"),
                                         token: request.body.token,
                                         workspace_id: request.body.workspace_id,
                                         name: filename,

@@ -42,6 +42,7 @@ module.exports = function (app) {
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
                     await MESSAGE.create({
+                        message_id: functions.uniqueId(10, "alphanumeric"),
                         token: request.body.token,
                         workspace_id: request.body.workspace_id,
                         from: request.body.from,

@@ -6,7 +6,6 @@ module.exports = mongoose => {
   let schema = mongoose.Schema({
         token: { 
             type: String,
-            default: functions.uniqueId(30, "alphanumeric"),
             required: true,
             index: true
         },

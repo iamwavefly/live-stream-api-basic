@@ -43,6 +43,7 @@ module.exports = function (app) {
                         userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
                         await WORKSPACE.create({
+                            workspace_id: functions.uniqueId(10, "alphanumeric"),
                             token: request.body.token,
                             name: request.body.name,
                             category: request.body.category
