@@ -39,7 +39,9 @@ module.exports = function (app) {
                     teamExists = Array.isArray(teamExists)? teamExists[0] : teamExists;
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
-                    TEAM.remove({token: request.body.token, team_id: request.body.team_id });
+                    await TEAM.deleteMany({token: request.body.token, team_id: request.body.team_id });
+
+                    teamExists = await TEAM.find({ token: request.body.token, team_id: request.body.team_id})
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
