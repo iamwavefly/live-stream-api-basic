@@ -39,7 +39,7 @@ module.exports = function (app) {
                     workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
-                    WORKSPACE.deleteMany({token: request.body.token, workspace_id: request.body.workspace_id });
+                    WORKSPACE.remove({token: request.body.token, workspace_id: request.body.workspace_id });
 
                     workspaceExists = await WORKSPACE.find({ token: request.body.token})
                     workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
