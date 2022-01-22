@@ -49,6 +49,9 @@ module.exports = function (app) {
                         }
                     );
 
+                    workspaceExists = await WORKSPACE.find({ token: request.body.token, workspace_id: request.body.workspace_id})
+                    workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
+                    
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)

@@ -51,6 +51,9 @@ module.exports = function (app) {
                         }
                     );
 
+                    teamExists = await TEAM.find({ token: request.body.token, team_id: request.body.team_id})
+                    teamExists = Array.isArray(teamExists)? teamExists[0] : teamExists;
+
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
