@@ -36,9 +36,13 @@ module.exports = function (app) {
             if (!functions.empty(workspaceExists)) {
                 try {
 
+                    workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
                     WORKSPACE.deleteOne({token: request.body.token, workspace_id: request.body.workspace_id });
+
+                    workspaceExists = await WORKSPACE.find({ token: request.body.token})
+                    workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
