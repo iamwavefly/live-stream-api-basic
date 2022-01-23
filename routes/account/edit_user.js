@@ -62,6 +62,9 @@ module.exports = function (app) {
                         }
                     );
 
+                    userExists = await USER.find({ token: request.body.token})
+                    userExists = Array.isArray(userExists)? userExists[0] : userExists;
+                    
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)

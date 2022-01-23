@@ -55,8 +55,6 @@ module.exports = function (app) {
                         }
                     );
 
-                    console.log(userExists)
-
                     // Send email
                     let subject = `${functions.ucwords(process.env.APP_NAME)} password reset`;
                     let message = `<p>Hello ${functions.ucwords(userExists.name.split(" ")[0])}! we have temporarily reset your password to <strong>${new_password}</strong></p>`;
