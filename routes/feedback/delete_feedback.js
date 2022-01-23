@@ -39,7 +39,7 @@ module.exports = function (app) {
                     feedbackExists = Array.isArray(feedbackExists)? feedbackExists[0] : feedbackExists;
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
-                    FEEDBACK.remove({token: request.body.token, feedback_id: request.body.feedback_id });
+                    await FEEDBACK.deleteMany({token: request.body.token, feedback_id: request.body.feedback_id });
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
