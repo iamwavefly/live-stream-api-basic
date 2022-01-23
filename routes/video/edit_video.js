@@ -64,7 +64,7 @@ module.exports = function (app) {
                             throw new Error("This user authentication token has expired, login again retry.")
                         }
 
-                        await USER.findOneAndUpdate(
+                        await USER.updateOne(
                             {token: request.body.token, video_id: request.body.video_id },
                             {
                                 name: functions.empty(request.body.name)? videoExists.name : request.body.name,
@@ -85,7 +85,7 @@ module.exports = function (app) {
 
                         videoExists = await VIDEO.find({ token: request.body.token, video_id: request.body.video_id})
                         videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
-                        
+
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                         payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                         payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)

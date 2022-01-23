@@ -76,7 +76,7 @@ module.exports = function (app) {
                         let new_token = userExists.token; //functions.uniqueId(30, "alphanumeric");
                         payload["token"] = new_token
 
-                        await USER.findOneAndUpdate(
+                        await USER.updateOne(
                             {email: request.body.email},
                             {
                                 token: new_token,

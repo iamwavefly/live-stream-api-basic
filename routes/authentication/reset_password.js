@@ -48,7 +48,7 @@ module.exports = function (app) {
 
                     let new_password = functions.uniqueId(8, "number")
 
-                    await USER.findOneAndUpdate(
+                    await USER.updateOne(
                         {email: request.body.email},
                         {
                             password: functions.encrypt(new_password)

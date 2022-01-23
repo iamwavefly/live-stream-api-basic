@@ -50,7 +50,7 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-                    await USER.findOneAndUpdate(
+                    await USER.updateOne(
                         {token: request.body.token},
                         {
                             name: functions.empty(request.body.name)? userExists.name : request.body.name,

@@ -54,7 +54,7 @@ module.exports = function (app) {
                         throw new Error("The new password doesn't match the password confirmation, Please check and trya again.")
                     }
 
-                    await USER.findOneAndUpdate(
+                    await USER.updateOne(
                         {token: request.body.token},
                         {
                             password: functions.encrypt(request.body.new_password)

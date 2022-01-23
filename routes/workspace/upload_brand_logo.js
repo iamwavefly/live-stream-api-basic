@@ -83,7 +83,7 @@ module.exports = function (app) {
                             }
 
                             let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
-                            await WORKSPACE.findOneAndUpdate(
+                            await WORKSPACE.updateOne(
                                 {token: userExists.token, workspace_id: request.body.workspace_id },
                                 {
                                     brand_styles: {

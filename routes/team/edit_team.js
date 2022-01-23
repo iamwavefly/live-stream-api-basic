@@ -42,7 +42,7 @@ module.exports = function (app) {
                     teamExists = Array.isArray(teamExists)? teamExists[0] : teamExists;
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
-                    await TEAM.findOneAndUpdate(
+                    await TEAM.updateOne(
                         {token: userExists.token, team_id: request.body.team_id },
                         {
                             name: functions.empty(request.body.name)? teamExists.name : request.body.name,

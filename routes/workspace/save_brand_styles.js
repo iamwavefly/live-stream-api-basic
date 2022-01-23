@@ -45,7 +45,7 @@ module.exports = function (app) {
                     workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
-                    await WORKSPACE.findOneAndUpdate(
+                    await WORKSPACE.updateOne(
                         {token: userExists.token, workspace_id: request.body.workspace_id },
                         {
                             brand_styles: {

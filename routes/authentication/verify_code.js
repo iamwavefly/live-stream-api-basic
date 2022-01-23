@@ -46,7 +46,7 @@ module.exports = function (app) {
 
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
-                    await USER.findOneAndUpdate(
+                    await USER.updateOne(
                         {email: request.body.email},
                         {
                             verification_code: "",

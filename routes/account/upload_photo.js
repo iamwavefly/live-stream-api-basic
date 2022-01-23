@@ -78,7 +78,7 @@ module.exports = function (app) {
                             }
 
                             let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
-                            await USER.findOneAndUpdate(
+                            await USER.updateOne(
                                 {token: request.body.token},
                                 {
                                     photo: file_path,
