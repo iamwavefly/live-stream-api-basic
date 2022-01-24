@@ -36,7 +36,7 @@ module.exports = function (app) {
             if (!functions.empty(userExists)) {
                 try {
 
-                    userExists = Array.isArray(userExists)? userExists[0] : userExists;
+                    // userExists = Array.isArray(userExists)? userExists[0] : userExists;
 
                     // Check if token has expired
                     const difference = Math.abs(dateUtil.differenceInMinutes(new Date(userExists.token_expiry), new Date()))
@@ -63,6 +63,7 @@ module.exports = function (app) {
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                     payload["videos"] = videoExists,
+                    
                     cache.set(cache_key, videoExists);
                     response.status(200).json({ "status": 200, "message": "Workspace videos has been fetched successfully.", "data": payload });
                 
