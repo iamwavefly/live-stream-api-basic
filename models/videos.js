@@ -16,12 +16,10 @@ module.exports = mongoose => {
             required: true
         },
         author: { 
-            type: String,
-            required: true
+            type: String
         },
         name: { 
-            type: String,
-            required: true
+            type: String
         },
         url: {
             type: String,
