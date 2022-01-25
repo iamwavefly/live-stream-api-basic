@@ -149,7 +149,7 @@ module.exports = function (app) {
                         }
                     }
 
-                    let videoExists = await VIDEO.find({ token: request.body.token, video_id: generated_video_id})
+                    videoExists = await VIDEO.find({ token: request.body.token, video_id: generated_video_id})
                     videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
                                         
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
