@@ -88,6 +88,7 @@ module.exports = function (app) {
                     }
 
                     // UPLOAD VIDEO TO AWS S3
+                    let generated_video_id = functions.uniqueId(10, "alphanumeric");
 
                     // UPLOAD FROM FILE
                     if(request.body.file_base64){
@@ -106,7 +107,7 @@ module.exports = function (app) {
 
                             let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
                             await VIDEO.create({
-                                video_id: functions.uniqueId(10, "alphanumeric"),
+                                video_id: generated_video_id,
                                 author: userExists.name,
                                 token: request.body.token,
                                 workspace_id: request.body.workspace_id,
@@ -130,7 +131,7 @@ module.exports = function (app) {
                                 uploadUrlToS3(request.body.file_url).then(async (data) => {
                                     let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
                                     await VIDEO.create({
-                                        video_id: functions.uniqueId(10, "alphanumeric"),
+                                        video_id: generated_video_id,
                                         token: request.body.token,
                                         workspace_id: request.body.workspace_id,
                                         name: filename,
@@ -148,6 +149,9 @@ module.exports = function (app) {
                         }
                     }
 
+                    let videoExists = await VIDEO.find({ token: request.body.token, video_id: generated_video_id})
+                    videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
+                                        
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)

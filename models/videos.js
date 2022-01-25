@@ -95,7 +95,7 @@ module.exports = mongoose => {
                 },
                 url: {
                     type: String,
-                    default: "#"
+                    default: ""
                 },
                 radius: {
                     type: String,
