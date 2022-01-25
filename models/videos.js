@@ -54,10 +54,16 @@ module.exports = mongoose => {
             default: ""
         },
         page: {
+            logo: {
+                url: {
+                    type: String,
+                    default: "https://placeholderlogo.com/img/placeholder-logo-1.png"
+                }
+            },
             title: {
                 text: {
                     type: String,
-                    default: ""
+                    default: "Title Sample"
                 },
                 color: {
                     type: String,
@@ -67,7 +73,7 @@ module.exports = mongoose => {
             description: {
                 text: {
                     type: String,
-                    default: ""
+                    default: "Video description or message here."
                 },
                 color: {
                     type: String,
@@ -77,7 +83,7 @@ module.exports = mongoose => {
             call_to_action: {
                 text: {
                     type: String,
-                    default: "test"
+                    default: "I'm a button"
                 },
                 color: {
                     type: String,
@@ -89,11 +95,11 @@ module.exports = mongoose => {
                 },
                 url: {
                     type: String,
-                    default: ""
+                    default: "#"
                 },
-                is_rounded: {
-                    type: Boolean,
-                    default: true
+                radius: {
+                    type: String,
+                    default: "100px"
                 },
             }
         },

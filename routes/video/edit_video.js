@@ -1,10 +1,29 @@
 const dateUtil = require('date-fns');
 const path = require("path");
 const functions = require("../../utility/function.js")
+const AWS = require('aws-sdk');
+const multer = require('multer');
+const axios = require('axios');
+const storage = multer.memoryStorage()
+const upload = multer({storage: storage});
 
 const db = require("../../models");
 const USER = db.user;
 const VIDEO = db.video;
+
+const s3Client = new AWS.S3({
+    accessKeyId: process.env.S3_ACCESS_KEY,
+    secretAccessKey: process.env.S3_SECRET_KEY,
+    region: process.env.S3_REGION
+});
+
+const uploadParams = {
+    Bucket: process.env.S3_BUCKET, 
+    Key: null,
+    Body: null,
+    ContentEncoding: 'base64',
+    ContentType: 'image/jpeg'
+};
 
 // CACHE
 const NodeCache = require('node-cache');
@@ -14,22 +33,30 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
 
-    app.put(`/${endpoint_category}/edit_video`, async (request, response) => {
+    app.put(`/${endpoint_category}/edit_video`, upload.single("file"), async (request, response) => {
 
         /* 
         token
         video_id
         name
-        page: {
-            title,
-            description,
-            tags,
-            call_to_action: {
-                status, 
-                button_text
-                button_color
-                button_font
-                button_url
+        "page": {
+            "logo": {
+                "url": ""
+            },
+            "title": {
+                "text": "",
+                "color": ""
+            },
+            "description": {
+                "text": "",
+                "color": ""
+            },
+            "call_to_action": {
+                "text": "",
+                "color": "",
+                "font": "",
+                "url": "",
+                "radius": ""
             }
         }
         */
@@ -64,24 +91,58 @@ module.exports = function (app) {
                             throw new Error("This user authentication token has expired, login again retry.")
                         }
 
-                        await USER.updateOne(
-                            {token: request.body.token, video_id: request.body.video_id },
-                            {
-                                name: functions.empty(request.body.name)? videoExists.name : request.body.name,
-                                page: {
-                                    title: functions.empty(request.body.page.title)? videoExists.page.title : request.body.page.title,
-                                    description: functions.empty(request.body.page.description)? videoExists.page.description : request.body.page.description,
-                                    tags: functions.empty(request.body.page.tags)? videoExists.page.tags : request.body.page.tags,
-                                    call_to_action: {
-                                        status: functions.empty(request.body.page.call_to_action.status)? videoExists.page.call_to_action.status : request.body.page.call_to_action.status, 
-                                        button_text: functions.empty(request.body.page.call_to_action.button_text)? videoExists.page.call_to_action.button_text : request.body.page.call_to_action.button_text,
-                                        button_color: functions.empty(request.body.page.call_to_action.button_color)? videoExists.page.call_to_action.button_color : request.body.page.call_to_action.button_color,
-                                        button_font: functions.empty(request.body.page.call_to_action.button_font)? videoExists.page.call_to_action.button_font : request.body.page.call_to_action.button_font,
-                                        button_url: functions.empty(request.body.page.call_to_action.button_url)? videoExists.page.call_to_action.button_url : request.body.page.call_to_action.button_url
-                                    }
+
+                        // UPLOAD FROM FILE
+                        if(request.body.page.logo.url){
+
+                            let filename = "brand_logo_"+request.body.token;
+                            uploadParams.Key = filename;
+
+                            let file_buffer = new Buffer.from(request.body.page.logo.url.replace("data:image/gif;base64,", "").replace("data:image/jpeg;base64,", "").replace("data:image/png;base64,", "").replace("data:video/mp4;base64,", "").replace("data:video/webm;base64,", "").replace("data:video/mov;base64,", "").replace("data:audio/mp3;base64,", "").replace("data:audio/mpeg;base64,", "").replace("data:audio/wav;base64,", ""), "base64")
+                            uploadParams.Body = file_buffer;
+                            const params = uploadParams;
+
+                            s3Client.putObject(params, async (error, data) => {
+
+                                if (error) {
+                                    throw new Error(error.message)
                                 }
-                            }
-                        );
+
+                                let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
+                                
+                                await USER.updateOne(
+                                    {token: request.body.token, video_id: request.body.video_id },
+                                    {
+                                        name: functions.empty(request.body.name)? videoExists.name : request.body.name,
+                                        page: {
+                                            "logo": {
+                                                "url": functions.empty(request.body.page.logo.url)? videoExists.page.logo.url : file_path
+                                            },
+                                            "title": {
+                                                "text": functions.empty(request.body.page.title.text)? videoExists.page.title.text : request.body.page.title.text,
+                                                "color": functions.empty(request.body.page.title.color)? videoExists.page.title.color : request.body.page.title.color,
+                                            },
+                                            "description": {
+                                                "text": functions.empty(request.body.page.description.text)? videoExists.page.description.text : request.body.page.description.text,
+                                                "color": functions.empty(request.body.page.description.color)? videoExists.page.description.color : request.body.page.description.color,
+                                            },
+                                            "call_to_action": {
+                                                "text": functions.empty(request.body.page.call_to_action.text)? videoExists.page.call_to_action.text : request.body.page.call_to_action.text,
+                                                "color": functions.empty(request.body.page.call_to_action.color)? videoExists.page.call_to_action.color : request.body.page.call_to_action.color,
+                                                "font": functions.empty(request.body.page.call_to_action.font)? videoExists.page.call_to_action.font : request.body.page.call_to_action.font,
+                                                "url": functions.empty(request.body.page.call_to_action.url)? videoExists.page.call_to_action.url : request.body.page.call_to_action.url,
+                                                "radius": functions.empty(request.body.page.call_to_action.radius)? videoExists.page.call_to_action.radius : request.body.page.call_to_action.radius,
+                                            }
+                                        }
+                                    }
+                                );
+
+                            });
+
+                        }else{
+                            throw new Error("No file to upload found, check and try again.")
+                        }
+
 
                         videoExists = await VIDEO.find({ token: request.body.token, video_id: request.body.video_id})
                         videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
