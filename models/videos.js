@@ -55,37 +55,45 @@ module.exports = mongoose => {
         },
         page: {
             title: {
-                type: String,
-                default: ""
+                text: {
+                    type: String,
+                    default: ""
+                },
+                color: {
+                    type: String,
+                    default: "#000000"
+                }
             },
             description: {
-                type: String,
-                default: ""
-            },
-            tags: {
-                type: Array,
-                default: []
+                text: {
+                    type: String,
+                    default: ""
+                },
+                color: {
+                    type: String,
+                    default: "#000000"
+                }
             },
             call_to_action: {
-                status: {
-                    type: Boolean,
-                    default: false
-                }, 
-                button_text: {
+                text: {
                     type: String,
                     default: "test"
                 },
-                button_color: {
+                color: {
                     type: String,
                     default: "#000000"
                 },
-                button_font: {
+                font: {
                     type: String,
                     default: "arial"
                 },
-                button_url: {
+                url: {
                     type: String,
                     default: ""
+                },
+                is_rounded: {
+                    type: Boolean,
+                    default: true
                 },
             }
         },
