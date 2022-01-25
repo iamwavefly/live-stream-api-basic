@@ -110,29 +110,19 @@ module.exports = function (app) {
 
                                 let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
                                 
-                                await USER.updateOne(
+                                await VIDEO.updateOne(
                                     {token: request.body.token, video_id: request.body.video_id },
-                                    {
-                                        name: functions.empty(request.body.name)? videoExists.name : request.body.name,
-                                        page: {
-                                            "logo": {
-                                                "url": functions.empty(request.body.page.logo.url)? videoExists.page.logo.url : file_path
-                                            },
-                                            "title": {
-                                                "text": functions.empty(request.body.page.title.text)? videoExists.page.title.text : request.body.page.title.text,
-                                                "color": functions.empty(request.body.page.title.color)? videoExists.page.title.color : request.body.page.title.color,
-                                            },
-                                            "description": {
-                                                "text": functions.empty(request.body.page.description.text)? videoExists.page.description.text : request.body.page.description.text,
-                                                "color": functions.empty(request.body.page.description.color)? videoExists.page.description.color : request.body.page.description.color,
-                                            },
-                                            "call_to_action": {
-                                                "text": functions.empty(request.body.page.call_to_action.text)? videoExists.page.call_to_action.text : request.body.page.call_to_action.text,
-                                                "color": functions.empty(request.body.page.call_to_action.color)? videoExists.page.call_to_action.color : request.body.page.call_to_action.color,
-                                                "font": functions.empty(request.body.page.call_to_action.font)? videoExists.page.call_to_action.font : request.body.page.call_to_action.font,
-                                                "url": functions.empty(request.body.page.call_to_action.url)? videoExists.page.call_to_action.url : request.body.page.call_to_action.url,
-                                                "radius": functions.empty(request.body.page.call_to_action.radius)? videoExists.page.call_to_action.radius : request.body.page.call_to_action.radius,
-                                            }
+                                    {   "$set": {
+                                            "page.logo.url": functions.empty(request.body.page.logo.url)? videoExists.page.logo.url : file_path,
+                                            "page.title.text": functions.empty(request.body.page.title.text)? videoExists.page.title.text : request.body.page.title.text,
+                                            "page.title.color": functions.empty(request.body.page.title.color)? videoExists.page.title.color : request.body.page.title.color,
+                                            "page.description.text": functions.empty(request.body.page.description.text)? videoExists.page.description.text : request.body.page.description.text,
+                                            "page.description.color": functions.empty(request.body.page.description.color)? videoExists.page.description.color : request.body.page.description.color,
+                                            "page.call_to_action.text": functions.empty(request.body.page.call_to_action.text)? videoExists.page.call_to_action.text : request.body.page.call_to_action.text,
+                                            "page.call_to_action.color": functions.empty(request.body.page.call_to_action.color)? videoExists.page.call_to_action.color : request.body.page.call_to_action.color,
+                                            "page.call_to_action.font": functions.empty(request.body.page.call_to_action.font)? videoExists.page.call_to_action.font : request.body.page.call_to_action.font,
+                                            "page.call_to_action.url": functions.empty(request.body.page.call_to_action.url)? videoExists.page.call_to_action.url : request.body.page.call_to_action.url,
+                                            "page.call_to_action.radius": functions.empty(request.body.page.call_to_action.radius)? videoExists.page.call_to_action.radius : request.body.page.call_to_action.radius,
                                         }
                                     }
                                 );
