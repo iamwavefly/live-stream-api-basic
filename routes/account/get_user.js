@@ -16,7 +16,8 @@ module.exports = function (app) {
     app.get(`/${endpoint_category}/get_user`, async (request, response) => {
 
         /* 
-        token */
+        token
+        */
 
         if (request.query.token) {
 

@@ -52,8 +52,7 @@ module.exports = function (app) {
         name
         email
         type
-        file_buffer
-        file_url
+        file_base64
         text
         */
 
@@ -92,12 +91,13 @@ module.exports = function (app) {
                     // UPLOAD FEEDBACK TO AWS S3
 
                     // UPLOAD FROM FILE
-                    if(request.body.file_buffer){
+                    if(request.body.file_base64){
 
                         let filename = "feedback_"+functions.uniqueId(30, "alphanumeric");
                         uploadParams.Key = filename;
 
-                        uploadParams.Body = request.body.file_buffer;
+                        let file_buffer = new Buffer.from(request.body.file_base64.replace("data:image/gif;base64,", "").replace("data:image/jpeg;base64,", "").replace("data:image/png;base64,", "").replace("data:video/mp4;base64,", "").replace("data:video/webm;base64,", "").replace("data:video/mov;base64,", "").replace("data:audio/mp3;base64,", "").replace("data:audio/mpeg;base64,", "").replace("data:audio/wav;base64,", ""), "base64")
+                        uploadParams.Body = file_buffer;
                         const params = uploadParams;
 
                         s3Client.upload(params, async (error, data) => {
@@ -113,40 +113,22 @@ module.exports = function (app) {
                                 name: request.body.name,
                                 email: request.body.email,
                                 type: request.body.type,
+                                text: request.body.text,
                                 url: file_path,
                             })
                         });
 
                     }else{
-                        
-                        // UPLOAD FROM URL
-                        
-                        if(request.body.file_url){
-                            if(functions.validURL(request.body.file_url)){
-
-                                let filename = "feedback_"+functions.uniqueId(30, "alphanumeric");
-                                uploadParams.Key = filename;
-
-                                uploadUrlToS3(request.body.file_url).then(async (data) => {
-                                    let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
-                                    await FEEDBACK.create({
-                                        token: request.body.token,
-                                        workspace_id: request.body.workspace_id,
-                                        name: request.body.name,
-                                        email: request.body.email,
-                                        type: request.body.type,
-                                        url: file_path,
-                                    })
-                                }).catch((error) => {
-                                    throw new Error(error.message)
-                                })
-
-                            }else{
-                                throw new Error("File to be uploaded is not a valid url, check and retry.")
-                            }
-                        }else{
-                            throw new Error("No file to upload found, check and try again.")
-                        }
+                        await FEEDBACK.create({
+                            feedback_id: functions.uniqueId(10, "alphanumeric"),
+                            token: request.body.token,
+                            workspace_id: request.body.workspace_id,
+                            name: request.body.name,
+                            email: request.body.email,
+                            type: request.body.type,
+                            text: request.body.text,
+                            url: "",
+                        })
                     }
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
