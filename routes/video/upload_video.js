@@ -114,7 +114,10 @@ module.exports = function (app) {
                                 name: `New video ${functions.uniqueId(5, "number")}`,
                                 url: file_path,
                                 email_embed_code: `<div style="background-image:url(https://thumbnail.sendspark.com/animated/244k40wq334aicmbpjppv1f90q3qoxjk.5ce040d11da6691af7fc16711d23fcf6fd06e18f/sendspark-animated-thumbnail-244k40wq.gif);background-size:contain;background-repeat:no-repeat;background-position:center center;margin:0 auto;animation:playable-reveal 1s;overflow:hidden;"> <div style="position:relative;height:0;max-height:0;padding-bottom:56.25%;"> <video width="100%" height="auto" controls="controls" poster="https://thumbnail.sendspark.com/animated/244k40wq334aicmbpjppv1f90q3qoxjk.5ce040d11da6691af7fc16711d23fcf6fd06e18f/sendspark-animated-thumbnail-244k40wq.gif" src="https://stream.mux.com/L2FIt6ZYaFUwpr1we1ZDDW4w29EnCGnv/high.mp4" > <a href=https://sendspark.com/share/dg84k6urwjt3e61a> <img src="https://thumbnail.sendspark.com/animated/244k40wq334aicmbpjppv1f90q3qoxjk.5ce040d11da6691af7fc16711d23fcf6fd06e18f/sendspark-animated-thumbnail-244k40wq.gif" alt="Animated thumbnail for video" style="width: 100%;" > </a> </video> </div> </div>`,
-                                website_embed_code: `<div style="position:relative;height:0;width:100%;padding-bottom:56.25%"><iframe src="https://sendspark.com/embed/244k40wq334aicmbpjppv1f90q3qoxjk" frameBorder="0" style="position:absolute;width:100%;height:100%;border-radius:6px;left:0;top:0" allowfullscreen=""></iframe></div>`
+                                website_embed_code: `<div style="position: relative; height: 0; width: 100%; padding-bottom: 56.25%;">
+                                    <iframe src="https://sendbetter.io/embed/${generated_video_id}" frameborder="0" style="position: absolute; width: 100%; height: 100%; border-radius: 6px; left: 0; top: 0;" allowfullscreen=""></iframe>
+                                </div>
+                                `
                             })
 
                             videoExists = await VIDEO.find({ token: request.body.token, video_id: generated_video_id})

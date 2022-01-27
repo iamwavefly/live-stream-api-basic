@@ -99,10 +99,12 @@ const upload_video = require('./routes/video/upload_video')
 const edit_video = require('./routes/video/edit_video')
 const delete_video = require('./routes/video/delete_video')
 const get_videos = require('./routes/video/get_videos')
+const get_video_by_id = require('./routes/video/get_video_by_id')
 upload_video(app)
 edit_video(app)
 delete_video(app)
 get_videos(app)
+get_video_by_id(app)
 
 // ANALYTIC
 const set_visits = require('./routes/analytic/set_visits')
