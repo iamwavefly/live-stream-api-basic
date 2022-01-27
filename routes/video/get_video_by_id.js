@@ -63,7 +63,7 @@ module.exports = function (app) {
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                    payload["videos"] = videoExists,
+                    payload["video"] = videoExists,
                     
                     cache.set(cache_key, videoExists);
                     response.status(200).json({ "status": 200, "message": "Workspace video has been fetched successfully.", "data": payload });
