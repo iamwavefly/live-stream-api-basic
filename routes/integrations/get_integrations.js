@@ -4,7 +4,7 @@ const functions = require("../../utility/function.js")
 
 const db = require("../../models");
 const USER = db.user;
-const FEEDBACK = db.feedback;
+const INTEGRATION = db.integration;
 
 // CACHE
 const NodeCache = require('node-cache');
@@ -14,7 +14,7 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
 
-    app.get(`/${endpoint_category}/get_feedbacks`, async (request, response) => {
+    app.get(`/${endpoint_category}/get_integrations`, async (request, response) => {
 
         /* 
         token,
@@ -31,7 +31,7 @@ module.exports = function (app) {
             }
 
             let userExists = await USER.find({ token: request.query.token})
-            let feedbackExists = await FEEDBACK.find({ token: request.query.token, workspace_id: request.query.workspace_id})
+            let integrationExists = await INTEGRATION.find({ token: request.query.token, workspace_id: request.query.workspace_id})
 
             if (!functions.empty(userExists)) {
                 try {
@@ -54,28 +54,28 @@ module.exports = function (app) {
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                         payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                         payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                        payload["feedbacks"] = report
-                        response.status(200).json({ "status": 200, "message":`User account details has been fetched successfully.`, "data": payload });
+                        payload["integrations"] = report
+                        response.status(200).json({ "status": 200, "message": `User account details has been fetched successfully.`, "data": payload });
                         return true;
                     }
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                    payload["feedbacks"] = feedbackExists,
-                    cache.set(cache_key, feedbackExists);
-                    response.status(200).json({ "status": 200, "message":"Workspace feedbacks has been fetched successfully.", "data": payload });
+                    payload["integrations"] = integrationExists,
+                    cache.set(cache_key, integrationExists);
+                    response.status(200).json({ "status": 200, "message": "Workspace integrations has been fetched successfully.", "data": payload });
                 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });
                 }
 
             } else {
-                response.status(400).json({ "status": 400, "message":"User account access authentication credentials failed, check and retry.", "data": payload });
+                response.status(400).json({ "status": 400, "message": "User account access authentication credentials failed, check and retry.", "data": payload });
             }
 
         } else {
-            response.status(400).json({ "status": 400, "message":"Incomplete or missing requests parameter(s)", "data": null });
+            response.status(400).json({ "status": 400, "message": "Incomplete or missing requests parameter(s)", "data": null });
         }
 
     })
