@@ -19,4 +19,5 @@ db.notification = require("../models/notifications")(mongoose);
 db.message = require("../models/messages")(mongoose);
 db.feedback = require("../models/feedbacks")(mongoose);
 db.template = require("../models/templates")(mongoose);
+db.integration = require("../models/integrations")(mongoose);
 module.exports = db;
