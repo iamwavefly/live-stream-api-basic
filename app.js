@@ -149,11 +149,11 @@ create_feedback(app)
 delete_feedback(app)
 
 // TEMPLATE
-const get_templates = require('./routes/template/get_templates')
+const get_templates = require('./routes/templates/get_templates')
 get_templates(app)
 
 // INTEGRATION
-const get_integrations = require('./routes/integration/get_integrations')
+const get_integrations = require('./routes/integrations/get_integrations')
 get_integrations(app)
 
 app.get("/", (req, res) => {
