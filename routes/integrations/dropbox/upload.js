@@ -47,21 +47,45 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-                    const dropbox = dropboxV2Api.authenticate({
-                        token: integrationExists.access_token
-                    });
 
-                    https.get(request.body.file_url, (stream) => {
-                        dropbox({
-                            resource: 'files/upload',
-                            parameters: {
-                                path: `/SendBetter/${functions.uniqueId(30, "alphanumeric")}.mp4`
-                            },
-                            readStream: stream
-                        }, (err, result, report) => {
-                            if(err){ throw new Error(err) }
-                            response.status(200).json({ "status": 200, "message": "Dropbox upload response.", "data": result})
+                    var url = 'https://api.dropbox.com/1/oauth2/token';
+                    var body = {
+                        "grant_type": "refresh_token",
+                        "refresh_token": integrationExists.refresh_token,
+                        "client_id": process.env.DBX_APP_KEY,
+                        "client_secret": process.env.DBX_APP_SECRET
+                    };
+
+                    request_url.post(url, {form: body, json: true}, async (err, res, body) => {
+                        
+                        await INTEGRATION.updateOne(
+                            { "token": token, "workspace_id": workspace_id, "apps.$.name": "dropbox"},
+                            { "$set": { 
+                                    "apps.$.access_token": body.access_token,
+                                    "apps.$.refresh_token": body.refresh_token,
+                                    "apps.$.is_connected": true
+                                } 
+                            }
+                        )
+
+                        // UPLOAD
+                        const dropbox = dropboxV2Api.authenticate({
+                            token: body.access_token
                         });
+
+                        https.get(request.body.file_url, (stream) => {
+                            dropbox({
+                                resource: 'files/upload',
+                                parameters: {
+                                    path: `/SendBetter/${functions.uniqueId(30, "alphanumeric")}.mp4`
+                                },
+                                readStream: stream
+                            }, (err, result, report) => {
+                                if(err){ throw new Error(err) }
+                                response.status(200).json({ "status": 200, "message": "Dropbox upload response.", "data": result})
+                            });
+                        });
+
                     });
 
                 } else {

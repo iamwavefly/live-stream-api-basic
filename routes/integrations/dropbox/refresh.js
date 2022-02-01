@@ -46,7 +46,6 @@ module.exports = function (app) {
 
                 var url = 'https://api.dropbox.com/1/oauth2/token';
                 var body = {
-                    "code": request.query.code,
                     "grant_type": "refresh_token",
                     "refresh_token": integrationExists.refresh_token,
                     "client_id": process.env.DBX_APP_KEY,
