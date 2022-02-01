@@ -20,17 +20,17 @@ module.exports = function (app) {
             // workspace_id
             // file_url
 
-            if (request.query.token && request.query.workspace_id && request.query.file_url) {
+            if (request.body.token && request.body.workspace_id && request.body.file_url) {
 
                 let payload = {
                     is_verified: false,
                     is_blocked: false,
                     is_registered: false,
-                    token: request.query.token
+                    token: request.body.token
                 }
 
-                let userExists = await USER.find({ token: request.query.token})
-                let integrationExists = await INTEGRATION.find({ token: request.query.token, workspace_id: request.query.workspace_id, "apps.$.name": "dropbox"})
+                let userExists = await USER.find({ token: request.body.token})
+                let integrationExists = await INTEGRATION.find({ token: request.body.token, workspace_id: request.body.workspace_id, "apps.$.name": "dropbox"})
                 
                 if (!functions.empty(userExists)) {
 
@@ -51,7 +51,7 @@ module.exports = function (app) {
                         token: integrationExists.access_token
                     });
 
-                    https.get(file_url, (stream) => {
+                    https.get(request.body.file_url, (stream) => {
                         dropbox({
                             resource: 'files/upload',
                             parameters: {
