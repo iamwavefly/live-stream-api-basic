@@ -5,6 +5,7 @@ const functions = require("../../utility/function.js")
 const db = require("../../models");
 const USER = db.user;
 const VIDEO = db.video;
+const INTEGRATION = db.integration;
 
 // CACHE
 const NodeCache = require('node-cache');
@@ -32,11 +33,13 @@ module.exports = function (app) {
 
             let userExists = await USER.find({ token: request.query.token})
             let videoExists = await VIDEO.find({ token: request.query.token, workspace_id: request.query.workspace_id})
+            let integrationExists = await INTEGRATION.find({ token: request.query.token, workspace_id: request.query.workspace_id})
 
             if (!functions.empty(userExists)) {
                 try {
 
                     // userExists = Array.isArray(userExists)? userExists[0] : userExists;
+                    integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
 
                     // Check if token has expired
                     const difference = Math.abs(dateUtil.differenceInMinutes(new Date(userExists.token_expiry), new Date()))
@@ -63,7 +66,8 @@ module.exports = function (app) {
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                     payload["videos"] = videoExists,
-                    
+                    payload["integration"] = integrationExists
+
                     cache.set(cache_key, videoExists);
                     response.status(200).json({ "status": 200, "message": "Workspace videos has been fetched successfully.", "data": payload });
                 
