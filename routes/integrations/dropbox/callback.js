@@ -13,7 +13,7 @@ module.exports = function (app) {
     app.get(`/${endpoint_directory}/${endpoint_category}/callback`, async (request, response, next) => {
         try {
 
-            const REDIRECT_URL = `http://localhost:9001/integrations/dropbox/callback`;
+            const REDIRECT_URL = `http://sparkle-test.herokuapp.com/integrations/dropbox/callback`;
         
             var url = 'https://api.dropbox.com/1/oauth2/token';
             

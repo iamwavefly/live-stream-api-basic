@@ -14,7 +14,7 @@ module.exports = function (app) {
 
             if (request.query.token && request.query.workspace_id) {
 
-            const REDIRECT_URL = `http://localhost:9001/integrations/dropbox/callback`;
+            const REDIRECT_URL = `http://sparkle-test.herokuapp.com/integrations/dropbox/callback`;
             
             let payload = {
                     is_verified: false,
