@@ -59,6 +59,7 @@ module.exports = function (app) {
                             }
 
                             if (functions.empty(integrationExists)) {
+
                                 await INTEGRATION.create({
                                     token: token,
                                     workspace_id: workspace_id,
@@ -71,6 +72,25 @@ module.exports = function (app) {
                                         }
                                     ]
                                 })
+
+                                // CREATE FOLDER
+                                var options = {
+                                    'method': 'POST',
+                                    'url': `https://api.dropboxapi.com/2/files/create_folder_v2`,
+                                    headers: {
+                                        Accept: 'application/json',
+                                        'Content-Type': 'application/json',
+                                        Authorization: `Bearer ${body.access_token}`
+                                    },
+                                    json: true,
+                                    body: {
+                                        "path": "/SendBetter",
+                                        "autorename": true
+                                    },
+                                };
+                                request_url(options, function (error, report) {});
+
+
                             }else{
                                 integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.$.name": "dropbox"})
                                 integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
@@ -99,24 +119,6 @@ module.exports = function (app) {
                                         }
                                     )
                                 }
-
-                                // CREATE FOLDER
-                                var options = {
-                                    'method': 'POST',
-                                    'url': `https://api.dropboxapi.com/2/files/create_folder_v2`,
-                                    headers: {
-                                        Accept: 'application/json',
-                                        'Content-Type': 'application/json',
-                                        Authorization: `Bearer ${body.access_token}`
-                                    },
-                                    json: true,
-                                    body: {
-                                        "path": "/SendBetter",
-                                        "autorename": true
-                                    },
-                                };
-                                request_url(options, function (error, report) {});
-                                
 
                             }
 
