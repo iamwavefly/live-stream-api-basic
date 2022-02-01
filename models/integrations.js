@@ -15,9 +15,14 @@ module.exports = mongoose => {
             {
                 name: {
                     type: String,
+                    default: "",
+                    enum: ["google_drive", "dropbox", "one_drive", "box"]
+                },
+                access_token: {
+                    type: String,
                     default: ""
                 },
-                token: {
+                refresh_token: {
                     type: String,
                     default: ""
                 },

@@ -37,6 +37,7 @@ module.exports = function (app) {
                 try {
 
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
+                    integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
 
                     // Check if token has expired
                     const difference = Math.abs(dateUtil.differenceInMinutes(new Date(userExists.token_expiry), new Date()))

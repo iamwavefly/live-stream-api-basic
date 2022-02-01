@@ -156,6 +156,19 @@ get_templates(app)
 const get_integrations = require('./routes/integrations/get_integrations')
 get_integrations(app)
 
+// DROPBOX
+const authentication = require('./routes/integrations/dropbox/authentication')
+const callback = require('./routes/integrations/dropbox/callback')
+const refresh = require('./routes/integrations/dropbox/refresh')
+const fetch = require('./routes/integrations/dropbox/fetch')
+const upload = require('./routes/integrations/dropbox/upload')
+authentication(app)
+callback(app)
+refresh(app)
+fetch(app)
+upload(app)
+
+
 app.get("/", (req, res) => {
   res.status(200).json({ "status": 200, "message": "Welcome to sparkle api.", "data": null })
 });
