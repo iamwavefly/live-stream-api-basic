@@ -32,103 +32,110 @@ module.exports = function (app) {
             };
 
             request_url.post(url, {form: body, json: true}, async (err, res, body) => {
+
+                if(err){ throw new Error(err) }
+
+                if(!functions.empty(body.access_token) || !functions.empty(body.refresh_token)){
                 
-                let token = request.query.state.split("_SEPARATOR_")[0]
-                let workspace_id = request.query.state.split("_SEPARATOR_")[1]
+                    let token = request.query.state.split("_SEPARATOR_")[0]
+                    let workspace_id = request.query.state.split("_SEPARATOR_")[1]
+                    let userExists = await USER.find({ token: token})
+                    let integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id})
+                    
+                    if (!functions.empty(userExists)) {
 
-                let userExists = await USER.find({ token: token})
-                let integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id})
-                
-                if (!functions.empty(userExists)) {
+                        try {
 
-                    try {
+                            userExists = Array.isArray(userExists)? userExists[0] : userExists;
+                            integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
 
-                        userExists = Array.isArray(userExists)? userExists[0] : userExists;
-                        integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
+                            // Check if token has expired
+                            const difference = Math.abs(dateUtil.differenceInMinutes(new Date(userExists.token_expiry), new Date()))
+                            if (difference > process.env.TOKEN_EXPIRY_MINUTES) {
+                                payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
+                                payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
+                                payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
+                                throw new Error("This user authentication token has expired, login again retry.")
+                            }
 
-                        // Check if token has expired
-                        const difference = Math.abs(dateUtil.differenceInMinutes(new Date(userExists.token_expiry), new Date()))
-                        if (difference > process.env.TOKEN_EXPIRY_MINUTES) {
+                            if (functions.empty(integrationExists)) {
+                                await INTEGRATION.create({
+                                    token: token,
+                                    workspace_id: workspace_id,
+                                    apps: [
+                                        {
+                                            name: "dropbox",
+                                            access_token: body.access_token,
+                                            refresh_token: body.refresh_token,
+                                            is_connected: true,
+                                        }
+                                    ]
+                                })
+                            }else{
+                                integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.$.name": "dropbox"})
+                                integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
+
+                                if (!functions.empty(integrationExists)) {
+                                    await INTEGRATION.updateOne(
+                                        { "token": token, "workspace_id": workspace_id },
+                                        { "$push": { 
+                                                "apps": {
+                                                    "name": "dropbox",
+                                                    "access_token": body.access_token,
+                                                    "refresh_token": body.refresh_token,
+                                                    "is_connected": true
+                                                } 
+                                            } 
+                                        }
+                                    )
+                                }else{
+                                    await INTEGRATION.updateOne(
+                                        { "token": token, "workspace_id": workspace_id, "apps.$.name": "dropbox"},
+                                        { "$set": { 
+                                                "apps.$.access_token": body.access_token,
+                                                "apps.$.refresh_token": body.refresh_token,
+                                                "apps.$.is_connected": true
+                                            } 
+                                        }
+                                    )
+                                }
+
+                                // CREATE FOLDER
+                                var options = {
+                                    'method': 'POST',
+                                    'url': `https://api.dropboxapi.com/2/files/create_folder_v2`,
+                                    headers: {
+                                        Accept: 'application/json',
+                                        'Content-Type': 'application/json',
+                                        Authorization: `Bearer ${body.access_token}`
+                                    },
+                                    json: true,
+                                    body: {
+                                        "path": "/SendBetter",
+                                        "autorename": true
+                                    },
+                                };
+                                request_url(options, function (error, report) {});
+
+                            }
+
                             payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                             payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                             payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                            throw new Error("This user authentication token has expired, login again retry.")
+                            payload["integrations"] = body
+
+                            response.status(200).json({ "status": 200, "message": "Dropbox callback response.", "data": payload })
+
+                        } catch (e) {
+                            response.status(400).json({ "status": 400, "message": e.message, "data": payload });
                         }
 
-                        if (!functions.empty(integrationExists)) {
-                            await INTEGRATION.create({
-                                token: token,
-                                workspace_id: workspace_id,
-                                apps: [
-                                    {
-                                        name: "dropbox",
-                                        access_token: body.access_token,
-                                        refresh_token: body.refresh_token,
-                                        is_connected: true,
-                                    }
-                                ]
-                            })
-                        }else{
-                            integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.$.name": "dropbox"})
-                            integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
-
-                            if (!functions.empty(integrationExists)) {
-                                await INTEGRATION.updateOne(
-                                    { "token": token, "workspace_id": workspace_id },
-                                    { "$push": { 
-                                            "apps": {
-                                                "name": "dropbox",
-                                                "access_token": body.access_token,
-                                                "refresh_token": body.refresh_token,
-                                                "is_connected": true
-                                            } 
-                                        } 
-                                    }
-                                )
-                            }else{
-                                await INTEGRATION.updateOne(
-                                    { "token": token, "workspace_id": workspace_id, "apps.$.name": "dropbox"},
-                                    { "$set": { 
-                                            "apps.$.access_token": body.access_token,
-                                            "apps.$.refresh_token": body.refresh_token,
-                                            "apps.$.is_connected": true
-                                        } 
-                                    }
-                                )
-                            }
-
-                            // CREATE FOLDER
-                            var options = {
-                                'method': 'POST',
-                                'url': `https://api.dropboxapi.com/2/files/create_folder_v2`,
-                                headers: {
-                                    Accept: 'application/json',
-                                    'Content-Type': 'application/json',
-                                    Authorization: `Bearer ${body.access_token}`
-                                },
-                                json: true,
-                                body: {
-                                    "path": "/SendBetter",
-                                    "autorename": true
-                                },
-                            };
-                            request_url(options, function (error, report) {});
-
-                        }
-
-                        payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
-                        payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
-                        payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                        payload["integrations"] = body
-
-                        response.status(200).json({ "status": 200, "message": "Dropbox callback response.", "data": payload })
-
-                    } catch (e) {
-                        response.status(400).json({ "status": 400, "message": e.message, "data": payload });
+                    } else {
+                        response.status(400).json({ "status": 400, "message": "User account access authentication credentials failed, check and retry.", "data": payload });
                     }
 
-                } else {
-                    response.status(400).json({ "status": 400, "message": "User account access authentication credentials failed, check and retry.", "data": payload });
+                }else {
+                    response.status(400).json({ "status": 400, "message": "Access token missing or expired, check and retry.", "data": payload });
                 }
 
             });
