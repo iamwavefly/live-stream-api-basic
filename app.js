@@ -154,7 +154,9 @@ get_templates(app)
 
 // INTEGRATION
 const get_integrations = require('./routes/integrations/get_integrations')
+const disconnect = require('./routes/integrations/disconnect')
 get_integrations(app)
+disconnect(app)
 
 // DROPBOX
 const authentication = require('./routes/integrations/dropbox/authentication')
