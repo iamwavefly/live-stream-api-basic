@@ -74,8 +74,8 @@ module.exports = function (app) {
                             }else{
                                 integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.$.name": "dropbox"})
                                 integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
-
-                                if (!functions.empty(integrationExists)) {
+                                
+                                if (functions.empty(integrationExists)) {
                                     await INTEGRATION.updateOne(
                                         { "token": token, "workspace_id": workspace_id },
                                         { "$push": { 
