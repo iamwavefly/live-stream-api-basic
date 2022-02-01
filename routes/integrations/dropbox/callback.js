@@ -124,7 +124,7 @@ module.exports = function (app) {
                             payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                             payload["integrations"] = body
 
-                            response.redirect('http://sendbetter.io/integration_done')
+                            response.redirect('https://sendbetter.io/integration_done')
                             // response.status(200).json({ "status": 200, "message": "Dropbox callback response.", "data": payload })
 
                         } catch (e) {
