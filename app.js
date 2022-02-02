@@ -159,17 +159,22 @@ get_integrations(app)
 disconnect(app)
 
 // DROPBOX
-const authentication = require('./routes/integrations/dropbox/authentication')
-const callback = require('./routes/integrations/dropbox/callback')
-const refresh = require('./routes/integrations/dropbox/refresh')
-const fetch = require('./routes/integrations/dropbox/fetch')
-const upload = require('./routes/integrations/dropbox/upload')
-authentication(app)
-callback(app)
-refresh(app)
-fetch(app)
-upload(app)
+const dropbox_authentication = require('./routes/integrations/dropbox/authentication')
+const dropbox_callback = require('./routes/integrations/dropbox/callback')
+const dropbox_fetch = require('./routes/integrations/dropbox/fetch')
+const dropbox_upload = require('./routes/integrations/dropbox/upload')
+dropbox_authentication(app)
+dropbox_callback(app)
+dropbox_fetch(app)
+dropbox_upload(app)
 
+// GOOGLE DRIVE
+const google_drive_authentication = require('./routes/integrations/google_drive/authentication')
+const google_drive_callback = require('./routes/integrations/google_drive/callback')
+const google_drive_upload = require('./routes/integrations/google_drive/upload')
+google_drive_authentication(app)
+google_drive_callback(app)
+google_drive_upload(app)
 
 app.get("/", (req, res) => {
   res.status(200).json({ "status": 200, "message": "Welcome to sparkle api.", "data": null })

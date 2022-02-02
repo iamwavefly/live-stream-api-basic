@@ -3,7 +3,7 @@ const dateUtil = require('date-fns');
 const db = require("../../../models");
 const functions = require("../../../utility/function.js")
 var request_url = require('request');
-const dropboxV2Api = require('dropbox-v2-api');
+const { google } = require('googleapis');
 const https = require('https');
 
 const USER = db.user;
@@ -22,6 +22,8 @@ module.exports = function (app) {
 
             if (request.body.token && request.body.workspace_id && request.body.file_url) {
 
+                const REDIRECT_URL = `${process.env.REDIRECT_URL}/integrations/google_drive/callback`;
+
                 let payload = {
                     is_verified: false,
                     is_blocked: false,
@@ -30,13 +32,13 @@ module.exports = function (app) {
                 }
 
                 let userExists = await USER.find({ token: request.body.token})
-                let integrationExists = await INTEGRATION.find({ token: request.body.token, workspace_id: request.body.workspace_id, "apps.name": "dropbox"})
+                let integrationExists = await INTEGRATION.find({ token: request.body.token, workspace_id: request.body.workspace_id, "apps.name": "google_drive"})
                 
                 if (!functions.empty(userExists)) {
 
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
                     integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
-                    integrationExists = integrationExists.apps.filter((app) => {return app.name.toLowerCase() === "dropbox" })[0]
+                    integrationExists = integrationExists.apps.filter((app) => {return app.name.toLowerCase() === "google_drive" })[0]
 
                     // Check if token has expired
                     const difference = Math.abs(dateUtil.differenceInMinutes(new Date(userExists.token_expiry), new Date()))
@@ -47,19 +49,29 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-
-                    var url = 'https://api.dropbox.com/1/oauth2/token';
+                    var url = 'https://www.googleapis.com/oauth2/v4/token';
                     var body = {
                         "grant_type": "refresh_token",
                         "refresh_token": integrationExists.refresh_token,
-                        "client_id": process.env.DBX_APP_KEY,
-                        "client_secret": process.env.DBX_APP_SECRET
+                        "client_id": process.env.GOOGLE_CLIENT_ID,
+                        "client_secret": process.env.GOOGLE_CLIENT_SECRET
                     };
 
                     request_url.post(url, {form: body, json: true}, async (err, res, body) => {
                         
+                        const oauth2Client = new google.auth.OAuth2(
+                            process.env.GOOGLE_CLIENT_ID,
+                            process.env.GOOGLE_CLIENT_SECRET,
+                            `${REDIRECT_URL}`
+                        );
+
+                        oauth2Client.setCredentials({
+                            access_token: body.access_token,
+                            refresh_token: body.refresh_token
+                        });
+
                         await INTEGRATION.updateOne(
-                            { "token": request.body.token, "workspace_id": request.body.workspace_id, "apps.name": "dropbox"},
+                            { "token": request.body.token, "workspace_id": request.body.workspace_id, "apps.name": "google_drive"},
                             { "$set": { 
                                     "apps.$.access_token": body.access_token,
                                     "apps.$.refresh_token": body.refresh_token,
@@ -69,21 +81,32 @@ module.exports = function (app) {
                         )
 
                         // UPLOAD
-                        const dropbox = dropboxV2Api.authenticate({
-                            token: body.access_token
+                        const drive = google.drive({
+                            version: 'v3',
+                            auth: oauth2Client,
                         });
 
-                        https.get(request.body.file_url, (stream) => {
-                            dropbox({
-                                resource: 'files/upload',
-                                parameters: {
-                                    path: `/SendBetter/${functions.uniqueId(30, "alphanumeric")}.mp4`
-                                },
-                                readStream: stream
-                            }, (err, result, report) => {
-                                if(err){ throw new Error(err) }
-                                response.status(200).json({ "status": 200, "message": "Dropbox upload response.", "data": result})
-                            });
+                        https.get(request.body.file_url, async (stream) => {
+                            try {
+
+                                const drive_report = await drive.files.create({
+                                    requestBody: {
+                                        name: `${functions.uniqueId(30, "alphanumeric")}.mp4`,
+                                        mimeType: 'video/mp4',
+                                        parents: [integrationExists.folder_id]
+                                    },
+                                    fields: 'id',
+                                    media: {
+                                        mimeType: 'video/mp4',
+                                        body: stream,
+                                    },
+                                });
+
+                                response.status(200).json({ "status": 200, "message": "Google Drive upload response.", "data": drive_report})
+
+                            } catch (error) {
+                                if(error){ throw new Error(error) }
+                            }
                         });
 
                     });

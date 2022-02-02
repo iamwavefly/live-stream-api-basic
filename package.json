@@ -25,6 +25,7 @@
     "dotenv": "^11.0.0",
     "dropbox-v2-api": "^2.4.53",
     "express": "^4.17.2",
+    "googleapis": "^94.0.0",
     "helmet": "^5.0.1",
     "isomorphic-fetch": "^3.0.0",
     "mongoose": "^6.1.6",

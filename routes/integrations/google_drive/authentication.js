@@ -1,6 +1,7 @@
 const path = require("path");
 const dateUtil = require('date-fns');
 const db = require("../../../models");
+const { google } = require('googleapis');
 const functions = require("../../../utility/function.js")
 const USER = db.user;
 const INTEGRATION = db.integration;
@@ -14,9 +15,9 @@ module.exports = function (app) {
 
             if (request.query.token && request.query.workspace_id) {
 
-            const REDIRECT_URL = `${process.env.REDIRECT_URL}/integrations/dropbox/callback`;
+            const REDIRECT_URL = `${process.env.REDIRECT_URL}/integrations/google_drive/callback`;
             
-            let payload = {
+                let payload = {
                     is_verified: false,
                     is_blocked: false,
                     is_registered: false,
@@ -40,8 +41,23 @@ module.exports = function (app) {
                         throw new Error("This user authentication token has expired, login again retry.")
                     }
 
-                    let redirect_url = `https://www.dropbox.com/1/oauth2/authorize?client_id=${process.env.DBX_APP_KEY}&token_access_type=offline&response_type=code&redirect_uri=${REDIRECT_URL}&state=${`${request.query.token}_SEPARATOR_${request.query.workspace_id}`}`;
-                    response.status(200).json({ "status": 200, "message": "Dropbox authentication response.", "data": redirect_url })
+                    const oauth2Client = new google.auth.OAuth2(
+                        process.env.GOOGLE_CLIENT_ID,
+                        process.env.GOOGLE_CLIENT_SECRET,
+                        `${REDIRECT_URL}`
+                    );
+
+                    const scopes = [
+                        'https://www.googleapis.com/auth/drive.file'
+                    ];
+
+                    const redirect_url = oauth2Client.generateAuthUrl({
+                        access_type: 'offline',
+                        scope: scopes,
+                        state: `${request.query.token}_SEPARATOR_${request.query.workspace_id}`
+                    });
+
+                    response.status(200).json({ "status": 200, "message": "Google Drive authentication response.", "data": redirect_url })
 
                 } else {
                     response.status(400).json({ "status": 400, "message": "User account access authentication credentials failed, check and retry.", "data": payload });

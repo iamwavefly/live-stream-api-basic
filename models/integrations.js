@@ -13,6 +13,10 @@ module.exports = mongoose => {
         },
         apps: [
             {
+                folder_id: {
+                    type: String,
+                    default: ""
+                },
                 name: {
                     type: String,
                     default: "",

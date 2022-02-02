@@ -13,7 +13,7 @@ module.exports = function (app) {
     app.get(`/${endpoint_directory}/${endpoint_category}/callback`, async (request, response, next) => {
         try {
 
-            const REDIRECT_URL = `https://sparkle-test.herokuapp.com/integrations/dropbox/callback`;
+            const REDIRECT_URL = `${process.env.REDIRECT_URL}/integrations/dropbox/callback`;
         
             var url = 'https://api.dropbox.com/1/oauth2/token';
             
@@ -92,7 +92,7 @@ module.exports = function (app) {
 
 
                             }else{
-                                integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.$.name": "dropbox"})
+                                integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.name": "dropbox"})
                                 integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
                                 
                                 if (functions.empty(integrationExists)) {
@@ -110,7 +110,7 @@ module.exports = function (app) {
                                     )
                                 }else{
                                     await INTEGRATION.updateOne(
-                                        { "token": token, "workspace_id": workspace_id, "apps.$.name": "dropbox"},
+                                        { "token": token, "workspace_id": workspace_id, "apps.name": "dropbox"},
                                         { "$set": { 
                                                 "apps.$.access_token": body.access_token,
                                                 "apps.$.refresh_token": body.refresh_token,
