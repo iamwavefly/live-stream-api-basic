@@ -3,6 +3,7 @@ const dateUtil = require('date-fns');
 var request_url = require('request');
 const db = require("../../../models");
 const functions = require("../../../utility/function.js")
+var oneDriveAPI = require('onedrive-api');
 const USER = db.user;
 const INTEGRATION = db.integration;
 
@@ -13,9 +14,9 @@ module.exports = function (app) {
     app.get(`/${endpoint_directory}/${endpoint_category}/callback`, async (request, response, next) => {
         try {
 
-            const REDIRECT_URL = `${process.env.REDIRECT_URL}/integrations/dropbox/callback`;
+            const REDIRECT_URL = `${process.env.REDIRECT_URL}/integrations/one_drive/callback`;
         
-            var url = 'https://api.dropbox.com/1/oauth2/token';
+            var url = 'https://login.live.com/oauth20_token.srf';
             
             let payload = {
                 is_verified: false,
@@ -27,8 +28,8 @@ module.exports = function (app) {
                 "code": request.query.code,
                 "grant_type": "authorization_code",
                 "redirect_uri": REDIRECT_URL,
-                "client_id": process.env.DBX_APP_KEY,
-                "client_secret": process.env.DBX_APP_SECRET
+                "client_id": process.env.ONEDRIVE_CLIENT_ID,
+                "client_secret": process.env.ONEDRIVE_CLIENT_SECRET
             };
 
             request_url.post(url, {form: body, json: true}, async (err, res, body) => {
@@ -65,7 +66,7 @@ module.exports = function (app) {
                                     workspace_id: workspace_id,
                                     apps: [
                                         {
-                                            name: "dropbox",
+                                            name: "one_drive",
                                             access_token: body.access_token,
                                             refresh_token: body.refresh_token,
                                             is_connected: true,
@@ -73,52 +74,24 @@ module.exports = function (app) {
                                     ]
                                 })
 
-                                // CREATE FOLDER
-                                var options = {
-                                    'method': 'POST',
-                                    'url': `https://api.dropboxapi.com/2/files/create_folder_v2`,
-                                    headers: {
-                                        Accept: 'application/json',
-                                        'Content-Type': 'application/json',
-                                        Authorization: `Bearer ${body.access_token}`
-                                    },
-                                    json: true,
-                                    body: {
-                                        "path": "/SendBetter",
-                                        "autorename": true
-                                    },
-                                };
-                                request_url(options, function (error, report) {});
+                                oneDriveAPI.items.createFolder({
+                                    accessToken: body.access_token,
+                                    rootItemId: "root",
+                                    name: "SendBetter",
+                                }).then((item) => {});
 
 
                             }else{
-                                integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.name": "dropbox"})
+                                integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.name": "one_drive"})
                                 integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
                                 
                                 if (functions.empty(integrationExists)) {
-
-                                    // CREATE FOLDER
-                                    var options = {
-                                        'method': 'POST',
-                                        'url': `https://api.dropboxapi.com/2/files/create_folder_v2`,
-                                        headers: {
-                                            Accept: 'application/json',
-                                            'Content-Type': 'application/json',
-                                            Authorization: `Bearer ${body.access_token}`
-                                        },
-                                        json: true,
-                                        body: {
-                                            "path": "/SendBetter",
-                                            "autorename": true
-                                        },
-                                    };
-                                    request_url(options, function (error, report) {});
-
+                                    
                                     await INTEGRATION.updateOne(
                                         { "token": token, "workspace_id": workspace_id },
                                         { "$push": { 
                                                 "apps": {
-                                                    "name": "dropbox",
+                                                    "name": "one_drive",
                                                     "access_token": body.access_token,
                                                     "refresh_token": body.refresh_token,
                                                     "is_connected": true
@@ -127,9 +100,15 @@ module.exports = function (app) {
                                         }
                                     )
 
+                                    oneDriveAPI.items.createFolder({
+                                        accessToken: body.access_token,
+                                        rootItemId: "root",
+                                        name: "SendBetter",
+                                    }).then((item) => {});
+
                                 }else{
                                     await INTEGRATION.updateOne(
-                                        { "token": token, "workspace_id": workspace_id, "apps.name": "dropbox"},
+                                        { "token": token, "workspace_id": workspace_id, "apps.name": "one_drive"},
                                         { "$set": { 
                                                 "apps.$.access_token": body.access_token,
                                                 "apps.$.refresh_token": body.refresh_token,
@@ -147,7 +126,7 @@ module.exports = function (app) {
                             payload["integrations"] = body
 
                             response.redirect('https://sendbetter.io/integration_done')
-                            // response.status(200).json({ "status": 200, "message": "Dropbox callback response.", "data": payload })
+                            // response.status(200).json({ "status": 200, "message": "OneDrive callback response.", "data": payload })
 
                         } catch (e) {
                             response.status(400).json({ "status": 400, "message": e.message, "data": payload });

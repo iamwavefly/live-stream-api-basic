@@ -5,6 +5,7 @@ const functions = require("../../utility/function.js")
 const db = require("../../models");
 const USER = db.user;
 const WORKSPACE = db.workspace;
+const TEAM = db.team;
 
 // CACHE
 const NodeCache = require('node-cache');
@@ -17,10 +18,12 @@ module.exports = function (app) {
     app.get(`/${endpoint_category}/get_workspaces`, async (request, response) => {
 
         /* 
-        token
+        token,
+        is_team_member,
+        team_id 
         */
 
-        if (request.query.token) {
+        if (request.query.token, request.query.is_team_member) {
 
             let payload = {
                 is_verified: false,
@@ -30,7 +33,19 @@ module.exports = function (app) {
             }
 
             let userExists = await USER.find({ token: request.query.token})
+            
             let workspaceExists = await WORKSPACE.find({ token: request.query.token})
+
+            if(request.query.is_team_member){
+                let teamExists = await TEAM.find({ team_id: request.query.team_id }) 
+                teamExists = Array.isArray(teamExists)? teamExists[0] : teamExists;
+
+                if (!functions.empty(teamExists)) {
+                    workspaceExists = await WORKSPACE.find({ workspace_id: teamExists.workspace_id})
+                }else{
+                    workspaceExists = []
+                }
+            }
 
             if (!functions.empty(userExists)) {
                 try {

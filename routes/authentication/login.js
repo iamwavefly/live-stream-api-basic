@@ -4,6 +4,7 @@ const functions = require("../../utility/function.js")
 
 const db = require("../../models");
 const USER = db.user;
+const TEAM = db.team;
 
 // CACHE
 const NodeCache = require('node-cache');
@@ -39,7 +40,19 @@ module.exports = function (app) {
                 return true;
             }
 
+            let is_team_member = false;
             let userExists = await USER.find({ email: request.body.email})
+            if (functions.empty(userExists)) {
+                is_team_member = true;
+                teamExists = await TEAM.find({ email: request.body.email, password: request.body.password})
+                teamExists = Array.isArray(teamExists)? teamExists[0] : teamExists;
+
+                if (!functions.empty(teamExists)) {
+                    userExists = await USER.find({ token: teamExists.token})
+                }else{
+                    userExists = [];
+                }
+            }
             
             if (!functions.empty(userExists)) {
 
@@ -63,9 +76,19 @@ module.exports = function (app) {
                     return true;
                 }
 
+                if(is_team_member){
+                    userExists = teamExists;
+                }
+
                 try {
 
-                    let decrypted_password = await functions.decrypt(userExists.password)
+                    let decrypted_password;
+                    if(is_team_member){
+                        decrypted_password = userExists.password;
+                    }else {
+                        decrypted_password = await functions.decrypt(userExists.password)
+                    }
+
                     if (decrypted_password === request.body.password) {
 
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
@@ -75,14 +98,18 @@ module.exports = function (app) {
 
                         let new_token = userExists.token; //functions.uniqueId(30, "alphanumeric");
                         payload["token"] = new_token
+                        payload["is_team_member"] = is_team_member
+                        payload["team_id"] = is_team_member? userExists.team_id : ""
 
-                        await USER.updateOne(
-                            {email: request.body.email},
-                            {
-                                token: new_token,
-                                token_expiry: dateUtil.addMinutes(new Date(), process.env.TOKEN_EXPIRY_MINUTES).toISOString()
-                            }
-                        );
+                        if(!is_team_member){
+                            await USER.updateOne(
+                                {email: request.body.email},
+                                {
+                                    token: new_token,
+                                    token_expiry: dateUtil.addMinutes(new Date(), process.env.TOKEN_EXPIRY_MINUTES).toISOString()
+                                }
+                            );
+                        }
 
                         response.status(200).json({ "status": 200, "message": "User login details has been verified successfully.", "data": payload });
 

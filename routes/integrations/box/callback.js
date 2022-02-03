@@ -3,8 +3,15 @@ const dateUtil = require('date-fns');
 var request_url = require('request');
 const db = require("../../../models");
 const functions = require("../../../utility/function.js")
+var oneDriveAPI = require('onedrive-api');
+var BoxSDK = require('box-node-sdk');
 const USER = db.user;
 const INTEGRATION = db.integration;
+
+BoxSDK = new BoxSDK({
+  clientID: process.env.BOX_CLIENT_ID,
+  clientSecret: process.env.BOX_CLIENT_SECRET
+});
 
 module.exports = function (app) {
     let endpoint_directory = path.basename(path.dirname(__dirname));
@@ -13,9 +20,9 @@ module.exports = function (app) {
     app.get(`/${endpoint_directory}/${endpoint_category}/callback`, async (request, response, next) => {
         try {
 
-            const REDIRECT_URL = `${process.env.REDIRECT_URL}/integrations/dropbox/callback`;
+            const REDIRECT_URL = `${process.env.REDIRECT_URL}/integrations/box/callback`;
         
-            var url = 'https://api.dropbox.com/1/oauth2/token';
+            var url = 'https://api.box.com/oauth2/token';
             
             let payload = {
                 is_verified: false,
@@ -27,8 +34,8 @@ module.exports = function (app) {
                 "code": request.query.code,
                 "grant_type": "authorization_code",
                 "redirect_uri": REDIRECT_URL,
-                "client_id": process.env.DBX_APP_KEY,
-                "client_secret": process.env.DBX_APP_SECRET
+                "client_id": process.env.BOX_CLIENT_ID,
+                "client_secret": process.env.BOX_CLIENT_SECRET
             };
 
             request_url.post(url, {form: body, json: true}, async (err, res, body) => {
@@ -60,76 +67,54 @@ module.exports = function (app) {
 
                             if (functions.empty(integrationExists)) {
 
-                                await INTEGRATION.create({
-                                    token: token,
-                                    workspace_id: workspace_id,
-                                    apps: [
-                                        {
-                                            name: "dropbox",
-                                            access_token: body.access_token,
-                                            refresh_token: body.refresh_token,
-                                            is_connected: true,
-                                        }
-                                    ]
-                                })
-
-                                // CREATE FOLDER
-                                var options = {
-                                    'method': 'POST',
-                                    'url': `https://api.dropboxapi.com/2/files/create_folder_v2`,
-                                    headers: {
-                                        Accept: 'application/json',
-                                        'Content-Type': 'application/json',
-                                        Authorization: `Bearer ${body.access_token}`
-                                    },
-                                    json: true,
-                                    body: {
-                                        "path": "/SendBetter",
-                                        "autorename": true
-                                    },
-                                };
-                                request_url(options, function (error, report) {});
+                                var BoxClient = BoxSDK.getBasicClient(body.access_token);
+                                BoxClient.folders.create('0', 'SendBetter').then( async (folder) => {
+                                    await INTEGRATION.create({
+                                        token: token,
+                                        workspace_id: workspace_id,
+                                        apps: [
+                                            {
+                                                folder_id: folder.id,
+                                                name: "box",
+                                                access_token: body.access_token,
+                                                refresh_token: body.refresh_token,
+                                                is_connected: true,
+                                            }
+                                        ]
+                                    }).catch((error) => {
+                                        throw new Error(error.message)
+                                    })
+                                });
 
 
                             }else{
-                                integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.name": "dropbox"})
+                                integrationExists = await INTEGRATION.find({ token: token, workspace_id: workspace_id, "apps.name": "box"})
                                 integrationExists = Array.isArray(integrationExists)? integrationExists[0] : integrationExists;
                                 
                                 if (functions.empty(integrationExists)) {
-
-                                    // CREATE FOLDER
-                                    var options = {
-                                        'method': 'POST',
-                                        'url': `https://api.dropboxapi.com/2/files/create_folder_v2`,
-                                        headers: {
-                                            Accept: 'application/json',
-                                            'Content-Type': 'application/json',
-                                            Authorization: `Bearer ${body.access_token}`
-                                        },
-                                        json: true,
-                                        body: {
-                                            "path": "/SendBetter",
-                                            "autorename": true
-                                        },
-                                    };
-                                    request_url(options, function (error, report) {});
-
-                                    await INTEGRATION.updateOne(
-                                        { "token": token, "workspace_id": workspace_id },
-                                        { "$push": { 
-                                                "apps": {
-                                                    "name": "dropbox",
-                                                    "access_token": body.access_token,
-                                                    "refresh_token": body.refresh_token,
-                                                    "is_connected": true
+                                    
+                                    var BoxClient = BoxSDK.getBasicClient(body.access_token);
+                                    BoxClient.folders.create('0', 'SendBetter').then( async (folder) => {
+                                        await INTEGRATION.updateOne(
+                                            { "token": token, "workspace_id": workspace_id },
+                                            { "$push": { 
+                                                    "apps": {
+                                                        "folder_id": folder.id,
+                                                        "name": "box",
+                                                        "access_token": body.access_token,
+                                                        "refresh_token": body.refresh_token,
+                                                        "is_connected": true
+                                                    } 
                                                 } 
-                                            } 
-                                        }
-                                    )
+                                            }
+                                        )
+                                    }).catch((error) => {
+                                        throw new Error(error.message)
+                                    })
 
                                 }else{
                                     await INTEGRATION.updateOne(
-                                        { "token": token, "workspace_id": workspace_id, "apps.name": "dropbox"},
+                                        { "token": token, "workspace_id": workspace_id, "apps.name": "box"},
                                         { "$set": { 
                                                 "apps.$.access_token": body.access_token,
                                                 "apps.$.refresh_token": body.refresh_token,
@@ -147,7 +132,7 @@ module.exports = function (app) {
                             payload["integrations"] = body
 
                             response.redirect('https://sendbetter.io/integration_done')
-                            // response.status(200).json({ "status": 200, "message": "Dropbox callback response.", "data": payload })
+                            // response.status(200).json({ "status": 200, "message": "Box callback response.", "data": payload })
 
                         } catch (e) {
                             response.status(400).json({ "status": 400, "message": e.message, "data": payload });

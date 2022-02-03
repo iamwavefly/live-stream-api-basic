@@ -176,6 +176,22 @@ google_drive_authentication(app)
 google_drive_callback(app)
 google_drive_upload(app)
 
+// ONE DRIVE
+const one_drive_authentication = require('./routes/integrations/one_drive/authentication')
+const one_drive_callback = require('./routes/integrations/one_drive/callback')
+const one_drive_upload = require('./routes/integrations/one_drive/upload')
+one_drive_authentication(app)
+one_drive_callback(app)
+one_drive_upload(app)
+
+// BOX
+const box_authentication = require('./routes/integrations/box/authentication')
+const box_callback = require('./routes/integrations/box/callback')
+const box_upload = require('./routes/integrations/box/upload')
+box_authentication(app)
+box_callback(app)
+box_upload(app)
+
 app.get("/", (req, res) => {
   res.status(200).json({ "status": 200, "message": "Welcome to sparkle api.", "data": null })
 });
