@@ -44,6 +44,7 @@ module.exports = function (app) {
                     if (!functions.empty(teamExists)) {
                         workspaceExists = await WORKSPACE.find({ workspace_id: teamExists.workspace_id})
                     }
+                
                 }
             }
 
