@@ -37,13 +37,13 @@ module.exports = function (app) {
             let workspaceExists = await WORKSPACE.find({ token: request.query.token})
 
             if(request.query.is_team_member){
-                let teamExists = await TEAM.find({ team_id: request.query.team_id }) 
-                teamExists = Array.isArray(teamExists)? teamExists[0] : teamExists;
+                if (request.query.team_id) {
+                    let teamExists = await TEAM.find({ team_id: request.query.team_id }) 
+                    teamExists = Array.isArray(teamExists)? teamExists[0] : teamExists;
 
-                if (!functions.empty(teamExists)) {
-                    workspaceExists = await WORKSPACE.find({ workspace_id: teamExists.workspace_id})
-                }else{
-                    workspaceExists = []
+                    if (!functions.empty(teamExists)) {
+                        workspaceExists = await WORKSPACE.find({ workspace_id: teamExists.workspace_id})
+                    }
                 }
             }
 
