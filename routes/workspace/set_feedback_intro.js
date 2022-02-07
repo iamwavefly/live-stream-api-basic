@@ -22,17 +22,17 @@ module.exports = function (app) {
         introduction
         */
 
-        if (request.query.token && request.query.workspace_id && request.query.introduction) {
+        if (request.body.token && request.body.workspace_id && request.body.introduction) {
 
             let payload = {
                 is_verified: false,
                 is_blocked: false,
                 is_registered: false,
-                token: request.query.token
+                token: request.body.token
             }
 
-            let userExists = await USER.find({ token: request.query.token})
-            let workspaceExists = await WORKSPACE.find({ token: request.query.token, workspace_id: request.query.workspace_id})
+            let userExists = await USER.find({ token: request.body.token})
+            let workspaceExists = await WORKSPACE.find({ token: request.body.token, workspace_id: request.body.workspace_id})
 
             if (!functions.empty(userExists)) {
                 try {
@@ -49,7 +49,7 @@ module.exports = function (app) {
                     }
 
                     // Check if cached is expired
-                    const cache_key = `${request.route.path}_${request.query.token}`;
+                    const cache_key = `${request.route.path}_${request.body.token}`;
                     if (cache.has(cache_key)) {
                         const report = cache.get(cache_key);
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
@@ -61,13 +61,13 @@ module.exports = function (app) {
                     }
 
                     await WORKSPACE.updateOne(
-                        {token: userExists.token, workspace_id: request.query.workspace_id },
+                        {token: userExists.token, workspace_id: request.body.workspace_id },
                         {
-                            feedback_introduction: functions.empty(request.query.introduction)? workspaceExists.feedback_introduction : request.query.introduction
+                            feedback_introduction: functions.empty(request.body.introduction)? workspaceExists.feedback_introduction : request.body.introduction
                         }
                     );
 
-                    workspaceExists = await WORKSPACE.find({ token: request.query.token, workspace_id: request.query.workspace_id})
+                    workspaceExists = await WORKSPACE.find({ token: request.body.token, workspace_id: request.body.workspace_id})
                     workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
