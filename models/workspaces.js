@@ -11,6 +11,10 @@ module.exports = mongoose => {
             type: String,
             required: true
         },
+        feedback_introduction: { 
+            type: String,
+            required: true
+        },
         name: { 
             type: String,
             required: true

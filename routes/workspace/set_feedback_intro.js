@@ -4,7 +4,6 @@ const functions = require("../../utility/function.js")
 
 const db = require("../../models");
 const USER = db.user;
-const FEEDBACK = db.feedback;
 const WORKSPACE = db.workspace;
 
 // CACHE
@@ -15,14 +14,15 @@ const cache = new NodeCache({ stdTTL: cache_expiry, checkperiod: cache_expiry * 
 module.exports = function (app) {
     let endpoint_category = path.basename(path.dirname(__filename));
 
-    app.get(`/${endpoint_category}/get_feedbacks`, async (request, response) => {
+    app.put(`/${endpoint_category}/set_feedback_intro`, async (request, response) => {
 
         /* 
         token,
-        workspace_id
+        workspace_id,
+        introduction
         */
 
-        if (request.query.token && request.query.workspace_id) {
+        if (request.query.token && request.query.workspace_id && request.query.introduction) {
 
             let payload = {
                 is_verified: false,
@@ -32,14 +32,12 @@ module.exports = function (app) {
             }
 
             let userExists = await USER.find({ token: request.query.token})
-            let feedbackExists = await FEEDBACK.find({ token: request.query.token, workspace_id: request.query.workspace_id})
             let workspaceExists = await WORKSPACE.find({ token: request.query.token, workspace_id: request.query.workspace_id})
 
             if (!functions.empty(userExists)) {
                 try {
 
                     userExists = Array.isArray(userExists)? userExists[0] : userExists;
-                    workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
 
                     // Check if token has expired
                     const difference = Math.abs(dateUtil.differenceInMinutes(new Date(userExists.token_expiry), new Date()))
@@ -53,26 +51,31 @@ module.exports = function (app) {
                     // Check if cached is expired
                     const cache_key = `${request.route.path}_${request.query.token}`;
                     if (cache.has(cache_key)) {
-
                         const report = cache.get(cache_key);
                         payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                         payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                         payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                         payload["feedbacks"] = report
-                        payload["workspace"] = workspaceExists
-
                         response.status(200).json({ "status": 200, "message":`User account details has been fetched successfully.`, "data": payload });
                         return true;
                     }
 
+                    await WORKSPACE.updateOne(
+                        {token: userExists.token, workspace_id: request.body.workspace_id },
+                        {
+                            feedback_introduction: functions.empty(request.body.introduction)? workspaceExists.feedback_introduction : request.body.introduction
+                        }
+                    );
+
+                    workspaceExists = await WORKSPACE.find({ token: request.body.token, workspace_id: request.body.workspace_id})
+                    workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
+
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                    payload["feedbacks"] = feedbackExists,
-                    payload["workspace"] = workspaceExists
+                    payload["workspace"] = workspaceExists,
                     
-                    cache.set(cache_key, feedbackExists);
-                    response.status(200).json({ "status": 200, "message":"Workspace feedbacks has been fetched successfully.", "data": payload });
+                    response.status(200).json({ "status": 200, "message":"Workspace feedbacks has been updated successfully.", "data": payload });
                 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });

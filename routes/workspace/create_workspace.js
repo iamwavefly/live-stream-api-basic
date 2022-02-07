@@ -46,7 +46,8 @@ module.exports = function (app) {
                             workspace_id: functions.uniqueId(10, "alphanumeric"),
                             token: request.body.token,
                             name: request.body.name,
-                            category: request.body.category
+                            category: request.body.category,
+                            feedback_introduction: "Tell us what's on your mind. We are always ready to listen to you anytime and day."
                         })
 
                         workspaceExists = await WORKSPACE.find({ token: request.body.token})

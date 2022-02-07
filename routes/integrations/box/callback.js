@@ -39,7 +39,7 @@ module.exports = function (app) {
             };
 
             request_url.post(url, {form: body, json: true}, async (err, res, body) => {
-
+                
                 if(err){ throw new Error(err) }
 
                 if(!functions.empty(body.access_token) || !functions.empty(body.refresh_token)){
@@ -69,6 +69,7 @@ module.exports = function (app) {
 
                                 var BoxClient = BoxSDK.getBasicClient(body.access_token);
                                 BoxClient.folders.create('0', 'SendBetter').then( async (folder) => {
+                                    
                                     await INTEGRATION.create({
                                         token: token,
                                         workspace_id: workspace_id,
@@ -84,6 +85,7 @@ module.exports = function (app) {
                                     }).catch((error) => {
                                         throw new Error(error.message)
                                     })
+
                                 });
 
 
