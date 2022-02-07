@@ -61,20 +61,20 @@ module.exports = function (app) {
                     }
 
                     await WORKSPACE.updateOne(
-                        {token: userExists.token, workspace_id: request.body.workspace_id },
+                        {token: userExists.token, workspace_id: request.query.workspace_id },
                         {
-                            feedback_introduction: functions.empty(request.body.introduction)? workspaceExists.feedback_introduction : request.body.introduction
+                            feedback_introduction: functions.empty(request.query.introduction)? workspaceExists.feedback_introduction : request.query.introduction
                         }
                     );
 
-                    workspaceExists = await WORKSPACE.find({ token: request.body.token, workspace_id: request.body.workspace_id})
+                    workspaceExists = await WORKSPACE.find({ token: request.query.token, workspace_id: request.query.workspace_id})
                     workspaceExists = Array.isArray(workspaceExists)? workspaceExists[0] : workspaceExists;
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
                     payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
                     payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
                     payload["workspace"] = workspaceExists,
-                    
+
                     response.status(200).json({ "status": 200, "message":"Workspace feedbacks has been updated successfully.", "data": payload });
                 
                 } catch (e) {
