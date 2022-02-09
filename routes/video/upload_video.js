@@ -115,7 +115,7 @@ module.exports = function (app) {
                                 url: file_path, 
                                 email_embed_code: `<div style="background-image:url();background-size:contain;background-repeat:no-repeat;background-position:center center;margin:0 auto;animation:playable-reveal 1s;overflow:hidden;">
                                     <div style="position:relative;height:0;max-height:0;padding-bottom:56.25%;">
-                                        <video width="100%" height="auto" controls="controls" poster="" src="${file_path}}" >
+                                        <video width="100%" height="auto" controls="controls" poster="" src="${file_path}" >
                                             <a href=https://sendbetter.io/share/${generated_video_id}>
                                                 <img src="" alt="Animated thumbnail for video" style="width: 100%;" >
                                             </a>
