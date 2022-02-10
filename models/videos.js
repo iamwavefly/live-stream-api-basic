@@ -25,6 +25,18 @@ module.exports = mongoose => {
             type: String,
             default: ""
         },
+        animated_image: {
+            type: String,
+            default: ""
+        },
+        still_image: {
+            type: String,
+            default: ""
+        },
+        cloudinary_public_id: {
+            type: String,
+            default: ""
+        },
         visits: {
             type: Number,
             default: 0

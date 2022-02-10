@@ -41,6 +41,10 @@ module.exports = function (app) {
 
                     await VIDEO.deleteMany({token: request.body.token, video_id: request.body.video_id });
 
+                    if(!functions.empty(videoExists.cloudinary_public_id)){
+                        functions.deleteCloudinaryFile(videoExists.cloudinary_public_id)
+                    }
+
                     videoExists = await VIDEO.find({ token: request.body.token, video_id: request.body.video_id})
 
                     payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)

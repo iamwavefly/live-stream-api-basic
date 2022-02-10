@@ -5,9 +5,44 @@ const url_request = require("request")
 let countries = require('../json/countries.json');
 let currencies = require('../json/currencies.json');
 let languages = require('../json/languages.json');
+var cloudinary = require('cloudinary').v2
+
+cloudinary.config({ 
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
+  api_key: process.env.CLOUDINARY_API_KEY, 
+  api_secret: process.env.CLOUDINARY_SECRET 
+});
 
 "use strict"
 var self = module.exports = {
+
+    deleteCloudinaryFile: (file_public_id) => {
+        cloudinary.uploader.destroy(file_public_id, function(result) {});
+    },
+
+    uploadCloudinaryFile: (file, folder="sendbetter", mime = "video/mp4", callback) => {
+        cloudinary.uploader.upload(`data:${mime};base64,${file}`, {
+                resource_type: "video",
+                folder: folder,
+                format: mime.split("/").pop()
+            }, 
+            function(error, result) { 
+                if(error){
+                    callback({ status: 400, message: error.message || error, data: null })
+                }else{
+                    callback({ status: 200, message: "File uploaded successfully", data: result })
+                }
+            }
+        );
+    },
+
+    generateCloudinaryAnimatedImage: (file_public_id) => {
+        cloudinary.image(`${file_public_id}.gif`, {gravity: "center", overlay: "sendbetter:play_button", width: 130, crop: "scale", resource_type: "video"})
+    },
+
+    generateCloudinaryStillImage: (file_public_id) => {
+        cloudinary.image(`${file_public_id}.png`, {resource_type: "video"})
+    },
 
     // GET TODAY'S DATE
     getTodayDate: () => {

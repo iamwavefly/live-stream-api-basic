@@ -90,96 +90,58 @@ module.exports = function (app) {
                     // UPLOAD VIDEO TO AWS S3
                     let generated_video_id = functions.uniqueId(10, "alphanumeric");
 
-                    // UPLOAD FROM FILE
-                    if(request.body.file_base64){
-
-                        let filename = "video_"+functions.uniqueId(30, "alphanumeric");
-                        uploadParams.Key = filename;
-
-                        let file_buffer = new Buffer.from(request.body.file_base64.replace("data:image/gif;base64,", "").replace("data:image/jpeg;base64,", "").replace("data:image/png;base64,", "").replace("data:video/mp4;base64,", "").replace("data:video/webm;base64,", "").replace("data:video/mov;base64,", "").replace("data:audio/mp3;base64,", "").replace("data:audio/mpeg;base64,", "").replace("data:audio/wav;base64,", ""), "base64")
-                        uploadParams.Body = file_buffer;
-                        const params = uploadParams;
-
-                        s3Client.upload(params, async (error, data) => {
-                            if (error) {
-                                throw new Error(error.message)
-                            }
-
-                            let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
-                            await VIDEO.create({
-                                video_id: generated_video_id,
-                                author: userExists.name,
-                                token: request.body.token,
-                                workspace_id: request.body.workspace_id,
-                                name: `New video ${functions.uniqueId(5, "number")}`,
-                                url: file_path, 
-                                email_embed_code: `<div style="background-image:url();background-size:contain;background-repeat:no-repeat;background-position:center center;margin:0 auto;animation:playable-reveal 1s;overflow:hidden;">
-                                    <div style="position:relative;height:0;max-height:0;padding-bottom:56.25%;">
-                                        <video width="100%" height="auto" controls="controls" poster="" src="${file_path}" >
-                                            <a href=https://sendbetter.io/share/${generated_video_id}>
-                                                <img src="" alt="Animated thumbnail for video" style="width: 100%;" >
-                                            </a>
-                                        </video>
-                                    </div>
-                                </div>`,
-                                website_embed_code: `<div style="position: relative; height: 0; width: 100%; padding-bottom: 56.25%;">
-                                    <iframe src="https://sendbetter.io/embed/${generated_video_id}" frameborder="0" style="position: absolute; width: 100%; height: 100%; border-radius: 6px; left: 0; top: 0;" allowfullscreen=""></iframe>
-                                </div>
-                                `
-                            })
-
-                            videoExists = await VIDEO.find({ token: request.body.token, video_id: generated_video_id})
-                            videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
-                                                
-                            payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
-                            payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
-                            payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                            payload["videos"] = videoExists,
-                            response.status(200).json({ "status": 200, "message": "Hurray! video has uploaded successfully.", "data": payload });
-
-                        });
-
-                    }else{
-                        
-                        // UPLOAD FROM URL
-                        
-                        if(request.body.file_url){
-                            if(functions.validURL(request.body.file_url)){
-
-                                let filename = "video_"+functions.uniqueId(30, "alphanumeric");
-                                uploadParams.Key = filename;
-
-                                uploadUrlToS3(request.body.file_url).then(async (data) => {
-                                    let file_path = `https://${uploadParams.Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${filename}`
-                                    await VIDEO.create({
-                                        video_id: generated_video_id,
-                                        token: request.body.token,
-                                        workspace_id: request.body.workspace_id,
-                                        name: filename,
-                                        url: file_path
-                                    })
-
-                                    videoExists = await VIDEO.find({ token: request.body.token, video_id: generated_video_id})
-                                    videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
-                                                        
-                                    payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
-                                    payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
-                                    payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
-                                    payload["videos"] = videoExists,
-                                    response.status(200).json({ "status": 200, "message": "Hurray! video has uploaded successfully.", "data": payload });
-
-
-                                }).catch((error) => {
-                                    throw new Error(error.message)
-                                })
-
-                            }else{
-                                throw new Error("File to be uploaded is not a valid url, check and retry.")
-                            }
-                        }else{
-                            throw new Error("No file to upload found, check and try again.")
+                    functions.uploadCloudinaryFile(request.body.file_base64, "sendbetter", "video/mp4", async function(report){
+                        if(report.status == 400){
+                            throw new Error (report.message)
                         }
-                    }
+
+                        let file_public_id = report.data.public_id
+                        let ordinary_secure_url = report.data.secure_url.replace("/video/upload/", "/video/upload/c_scale,w_600/")
+                        let file_with_button_secure_url = ordinary_secure_url.replace("/video/upload/", "/video/upload/c_scale,g_center,l_sendbetter:play_button,w_100/c_scale,w_600,e_loop/")
+                        let animated_image_url = file_with_button_secure_url.replace(".mp4", ".gif")
+                        let still_image_url = file_with_button_secure_url.replace(".mp4", ".png")
+
+                        functions.generateCloudinaryAnimatedImage(file_public_id)
+                        functions.generateCloudinaryStillImage(file_public_id)
+
+                        await VIDEO.create({
+                            video_id: generated_video_id,
+                            token: request.body.token,
+                            workspace_id: request.body.workspace_id,
+                            name: "video_"+functions.uniqueId(30, "alphanumeric"),
+                            url: ordinary_secure_url,
+                            animated_image: animated_image_url,
+                            still_image: still_image_url,
+                            cloudinary_public_id: file_public_id,
+                            share_link: `https://sendbetter.io/share/${generated_video_id}`,
+                            email_embed_code: `<div style="background-image:url(${animated_image_url});background-size:contain;background-repeat:no-repeat;background-position:center center;margin:0 auto;animation:playable-reveal 1s;overflow:hidden;">
+                                <div style="position:relative;height:0;max-height:0;padding-bottom:75%;">
+                                    <video width="100%"
+                                    height="auto"
+                                    controls="controls"
+                                    poster="${animated_image_url}" src="${ordinary_secure_url}"
+                                    >
+                                    <a href="https://sendbetter.io/share/${generated_video_id}">
+                                        <img src="${animated_image_url}" alt="Animated thumbnail for video" style="width: 100%;" >
+                                    </a>
+                                    </video>
+                                </div>
+                            </div>`,
+                            website_embed_code: `<div style="position:relative;height:0;width:100%;padding-bottom:62.5%"><iframe src="https://sendbetter.io/embed/${generated_video_id}" frameBorder="0" style="position:absolute;width:100%;height:100%;border-radius:6px;left:0;top:0" allowfullscreen=""></iframe></div>`
+                        })
+
+                        https://res.cloudinary.com/bluecode-technology/image/upload/c_scale,q_100,w_120/v1644492298/sendbetter/play-blue_fl4xmz.svg
+
+                        videoExists = await VIDEO.find({ token: request.body.token, video_id: generated_video_id})
+                        videoExists = Array.isArray(videoExists)? videoExists[0] : videoExists;
+                                            
+                        payload["is_verified"] = functions.stringToBoolean(userExists.is_verified)
+                        payload["is_blocked"] = functions.stringToBoolean(userExists.is_blocked)
+                        payload["is_registered"] = functions.stringToBoolean(userExists.is_registered)
+                        payload["videos"] = videoExists,
+                        response.status(200).json({ "status": 200, "message": "Hurray! video has uploaded successfully.", "data": payload });
+
+                    })
 
                 } catch (e) {
                     response.status(400).json({ "status": 400, "message": e.message, "data": payload });
